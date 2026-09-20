@@ -83,8 +83,8 @@ South (Player 1 / Human)
 
 ### 4.3 Capturing Rules (_Jẹ_)
 
-1. A capture triggers if the final seed lands on the **opponent's side** and brings that pit's total to **exactly 4 seeds**.
-2. **Cascading Backward Sweep:** The engine inspects consecutive predecessor pits counter-clockwise on the opponent's side (`(index - 1 + 12) % 12`). If a predecessor also holds exactly 4 seeds, its seeds are captured as well. The cascade terminates as soon as a pit without 4 seeds or a pit belonging to the active player is met.
+1. A capture triggers if the final seed lands on the **opponent's side** and brings that pit's total to **exactly 2 or 3 seeds**.
+2. **Cascading Backward Sweep:** The engine inspects consecutive predecessor pits in reverse sowing direction (clockwise: `(index - 1 + 12) % 12`). If a predecessor also holds **exactly 2 or 3 seeds**, all of its seeds are captured as well. The cascade terminates as soon as a pit without 2 or 3 seeds or a pit belonging to the active player is met.
 3. Captured seeds are transferred directly to the player's _Ojú-oró_.
 
 ### 4.4 Anti-Starvation (_Fún ní Jẹ_) & Grand Slam Resolution

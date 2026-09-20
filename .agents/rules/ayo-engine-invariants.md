@@ -78,11 +78,11 @@ Ojú-oró]│                                                                 �
 ## 5. Cascading Backward Captures (*Jẹ*)
 1. **Primary Capture Condition**:
    - Sowing's final seed lands in **opponent territory** (`[6..11]` for South; `[0..5]` for North).
-   - The final seed brings that pit's total to **exactly 4 seeds**.
+   - The final seed brings that pit's total to **exactly 2 or 3 seeds**.
 2. **Reverse (Clockwise) Cascade Sweep**:
    - From the final landing pit, inspect predecessor pits in reverse sowing direction (clockwise: `prev = (index - 1 + 12) % 12`).
-   - If `prev` is still in **opponent territory** AND contains **exactly 4 seeds**, scoop all 4 seeds into `scores[currentTurn]`.
-   - The cascade terminates immediately when a pit contains $\ne 4$ seeds or crosses the border into the active player's territory.
+   - If `prev` is still in **opponent territory** AND contains **exactly 2 or 3 seeds**, scoop all seeds in that pit (2 or 3) into `scores[currentTurn]`.
+   - The cascade terminates immediately when a pit contains $\ne 2$ and $\ne 3$ seeds (i.e. $< 2$ or $> 3$) or crosses the border into the active player's territory.
 
 ## 6. Anti-Starvation (*Fún ní Jẹ*) & Starvation Victory
 1. **Feeding Requirement**:

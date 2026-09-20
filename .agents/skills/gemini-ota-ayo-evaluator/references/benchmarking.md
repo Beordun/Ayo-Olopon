@@ -69,8 +69,8 @@ When Gemini generates dialogue or when fallback triggers, align proverbs to matc
 
 | Context | Yoruba Proverb (*Òwe Ayò*) | English Translation | Strategic Implication |
 | :--- | :--- | :--- | :--- |
-| **Aggressive Capture (+4, +8)** | *Ẹni tí ó gbọ́n ní ń jẹ ọ̀pọ̀.* | "He who is wise reaps the abundant harvest." | Mocking the opponent for leaving open hollows. |
-| **Defusing Opponent Trap** | *Ojú ló ń tà'yò, kò sí ogun níbẹ̀.* | "The eyes and mind play Ayò; it is not a war of muscle." | Praising foresight and defusing a 3-seed trap. |
+| **Aggressive Capture (Multi-pit)** | *Ẹni tí ó gbọ́n ní ń jẹ ọ̀pọ̀.* | "He who is wise reaps the abundant harvest." | Mocking the opponent for leaving open hollows. |
+| **Defusing Opponent Trap** | *Ojú ló ń tà'yò, kò sí ogun níbẹ̀.* | "The eyes and mind play Ayò; it is not a war of muscle." | Praising foresight and defusing an opponent trap. |
 | **Opponent Low Seeds** | *Bí a bá ń tà'yò, a kì í bínú; ogbọ́n la fi ń jẹ ọmọ ayò.* | "When playing Ayò, one must not rage; wisdom wins seeds." | Calming an opponent on the verge of starvation. |
 | **General Tactical Taunt** | *Ọmọdé kò mọ ayò tà, ó ń kígbe pé ayò dọ́gba.* | "A novice who cannot play Ayò cries that the game is a draw." | Challenging the player to think two steps ahead. |
 | **Endgame Close Match** | *Ayò kì í ṣe eré agbára, eré ìmọ̀ ni.* | "Ayò is not a trial of force, but a contest of intellect." | Respectful Grandmaster acknowledgement of tension. |

@@ -48,10 +48,10 @@ describe('Ayò Ọlọ́pọ́n Deterministic Engine Suite', () => {
   });
 
   // 3. Cascading Backward Capture & Threshold Win
-  it('Fixture 3: executes cascading backward captures and triggers threshold victory', () => {
+  it('Fixture 3: executes cascading backward captures (2 and 3 seeds) and triggers threshold victory', () => {
     const captureState: GameState = {
-      board: [0, 0, 0, 0, 0, 2, 3, 3, 0, 0, 0, 0],
-      scores: { south: 20, north: 20 },
+      board: [0, 0, 0, 0, 0, 2, 1, 2, 0, 0, 0, 0],
+      scores: { south: 21, north: 22 },
       currentTurn: 'south',
       isGameOver: false,
       winner: null,
@@ -59,13 +59,13 @@ describe('Ayò Ọlọ́pọ́n Deterministic Engine Suite', () => {
       zeroCaptureTurnCount: 0,
     };
 
-    // South plays pit 5 (2 seeds) -> lands in pit 6 (becomes 3+1=4) and pit 7 (becomes 3+1=4)
+    // South plays pit 5 (2 seeds) -> lands in pit 6 (becomes 1+1=2) and pit 7 (becomes 2+1=3)
     const nextState = executeMove(captureState, 5);
 
-    // Pit 7 captured (4), reverse sweep to pit 6 captured (4). South score = 20 + 8 = 28
+    // Pit 7 captured (3 seeds), reverse sweep to pit 6 captured (2 seeds). South score = 21 + 5 = 26
     expect(nextState.board[6]).toBe(0);
     expect(nextState.board[7]).toBe(0);
-    expect(nextState.scores.south).toBe(28);
+    expect(nextState.scores.south).toBe(26);
     expect(nextState.isGameOver).toBe(true);
     expect(nextState.winner).toBe('south');
     expect(() => assert48SeedConservation(nextState)).not.toThrow();
@@ -118,8 +118,8 @@ describe('Ayò Ọlọ́pọ́n Deterministic Engine Suite', () => {
   // 6. Grand Slam (Jẹ Tán) Resolution
   it('Fixture 5: allows capture to stand and sweeps remaining seeds when Grand Slam occurs', () => {
     const grandSlamState: GameState = {
-      board: [0, 0, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0], // North only has 3 in pit 6
-      scores: { south: 22, north: 22 },
+      board: [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0], // North only has 1 in pit 6
+      scores: { south: 23, north: 23 },
       currentTurn: 'south',
       isGameOver: false,
       winner: null,
@@ -127,10 +127,10 @@ describe('Ayò Ọlọ́pọ́n Deterministic Engine Suite', () => {
       zeroCaptureTurnCount: 0,
     };
 
-    // South plays pit 5 (1 seed) -> lands in pit 6 (3+1=4) -> captures all North seeds
+    // South plays pit 5 (1 seed) -> lands in pit 6 (1+1=2) -> captures all North seeds
     const nextState = executeMove(grandSlamState, 5);
     expect(nextState.board).toEqual(new Array(12).fill(0));
-    expect(nextState.scores.south).toBe(26);
+    expect(nextState.scores.south).toBe(25);
     expect(nextState.isGameOver).toBe(true);
     expect(nextState.winner).toBe('south');
     expect(() => assert48SeedConservation(nextState)).not.toThrow();

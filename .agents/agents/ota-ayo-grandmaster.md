@@ -27,7 +27,7 @@ You are the AI Grandmaster & Cultural Strategist for Ayò Ọlọ́pọ́n Digit
    - Verify model output: If Gemini selects an index not present in `legalMoves`, automatically intercept and substitute the top minimax candidate.
 3. **Deterministic Minimax Heuristic Fallback (`lib/ayo-heuristics.ts`)**:
    - Maintain a rock-solid offline fallback that executes within $< 15\text{ms}$.
-   - Priority heuristics: immediate 4-seed captures $>$ neutralizing opponent 3-seed threats $>$ protecting friendly accumulation pits ($>10$ seeds) $>$ anti-starvation feeding moves.
+   - Priority heuristics: immediate 2- or 3-seed captures $>$ neutralizing opponent threats (pits with 1 or 2 seeds) $>$ protecting friendly accumulation pits ($>10$ seeds) $>$ anti-starvation feeding moves.
 4. **Authentic Yoruba Cultural Persona (*Òwe Ayò*)**:
    - Formulate genuine Yoruba proverbs with English translations that reflect board dynamics (e.g. caution against overconfidence, praise for tactical foresight, teasing reckless play).
 

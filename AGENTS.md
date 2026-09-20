@@ -15,7 +15,7 @@ Ayò Ọlọ́pọ́n Digital is a culturally authentic, high-fidelity digital i
 - **Ihò**: The 12 circular playing hollows (6 pits per player).
 - **Ojú-oró**: The score banks / storehouses carved at the left and right ends of the board.
 - **Tà**: Sowing seeds counter-clockwise, dropping exactly one seed per consecutive hollow.
-- **Jẹ**: Capturing 4 seeds in an opponent's hollow.
+- **Jẹ**: Capturing 2 or 3 seeds in an opponent's hollow.
 - **Fún ní Jẹ**: Anti-starvation rule ("feed to eat"). A player must pass seeds to an empty opponent if a legal feeding move exists.
 - **Jẹ Tán**: Grand Slam capture — capturing all newly fed seeds. If this leaves the opponent with 0 seeds, the capture stands and the game terminates immediately.
 - **Ọ̀tá Ayò**: The Gemini-powered AI Grandmaster opponent.
@@ -68,11 +68,11 @@ The game engine must be a pure, deterministic, side-effect-free functional modul
 ### 2.3 Cascading Backward Captures (*Jẹ*)
 1. A capture triggers if and only if:
    - The final sown seed lands in an **opponent hollow** (for South: lands in `[6..11]`; for North: lands in `[0..5]`).
-   - The arrival of this final seed brings that hollow's total to **exactly 4 seeds**.
+   - The arrival of this final seed brings that hollow's total to **exactly 2 or 3 seeds**.
 2. **Cascading Backward Sweep**:
    - The engine inspects contiguous predecessor pits in reverse sowing direction: `prev_index = (index - 1 + 12) % 12`.
-   - If the predecessor pit is also in **opponent territory** AND currently holds **exactly 4 seeds**, its 4 seeds are also scooped.
-   - The cascade continues backwards until a pit contains $\ne 4$ seeds or crosses into the active player's territory.
+   - If the predecessor pit is also in **opponent territory** AND currently holds **exactly 2 or 3 seeds**, its seeds (2 or 3) are also scooped.
+   - The cascade continues backwards until a pit contains $\ne 2$ and $\ne 3$ seeds or crosses into the active player's territory.
 3. All scooped seeds are credited directly to `scores[currentTurn]`.
 
 ### 2.4 Anti-Starvation (*Fún ní Jẹ*) & Starvation Victory
@@ -193,8 +193,8 @@ $$\sum_{i=0}^{11} \text{board}[i] + \text{scores.south} + \text{scores.north} \e
 - **Candidate Pre-Filtering**: The caller passes pre-filtered `legalMoves: number[]` (indices 6..11).
 - **Output Validation**: If Gemini fails, times out, or hallucinates an index outside `legalMoves`, the route immediately executes `lib/ayo-heuristics.ts` and returns the top heuristic move with zero UI hang.
 - **Minimax Heuristic Evaluation Weights (`lib/ayo-heuristics.ts`)**:
-  1. Priority 1 (Score: +100 per seed): Immediate 4-seed capture yield.
-  2. Priority 2 (Score: +50): Defusing opponent 3-seed traps (pits with 3 seeds on South's side).
+  1. Priority 1 (Score: +100 per seed): Immediate capture yield (2 or 3 seeds per hollow).
+  2. Priority 2 (Score: +50): Defusing opponent threats (vulnerable pits with 1 or 2 seeds on South's side).
   3. Priority 3 (Score: +30): Protecting friendly accumulator hollows ($\ge 10$ seeds).
   4. Priority 4 (Score: +20): Preserving legal mobility and fulfilling anti-starvation obligations.
 

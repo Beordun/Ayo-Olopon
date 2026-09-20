@@ -75,7 +75,7 @@ class SoundEngine {
   }
 
   /**
-   * Synthesizes a resonant wooden chime when 4 seeds are scooped (Jẹ).
+   * Synthesizes a resonant wooden chime when seeds are scooped (Jẹ — 2 or 3 seeds).
    */
   public playCapture() {
     if (this.isMuted) return;

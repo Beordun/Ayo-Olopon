@@ -25,10 +25,10 @@ Before releasing or updating engine code, execute the test suites covering these
 - Sow from a pit with 23 seeds. Verify pit 2 is skipped on **both circuits**.
 
 ### 3. Cascading Backward Capture Test
-- Setup board where pit 8 and 7 have 3 seeds each.
-- South plays a move where the final seed lands in pit 8 (bringing it to 4).
-- Verify pit 8 captures 4 seeds, and the reverse sweep (clockwise: `(index - 1 + 12) % 12`) checks pit 7 (which has 4 seeds) and captures pit 7 as well.
-- Verify that if pit 6 has 2 seeds or belongs to South, the cascade halts immediately.
+- Setup board where pit 7 has 1 seed and pit 8 has 2 seeds.
+- South plays a move where the final seed lands in pit 8 (bringing it to 3 seeds).
+- Verify pit 8 captures 3 seeds, and the reverse sweep (clockwise: `(index - 1 + 12) % 12`) checks pit 7 (which has 2 seeds) and captures pit 7 (2 seeds) as well (total 5 seeds captured).
+- Verify that if pit 6 has 4 seeds (not 2 or 3) or belongs to South, the cascade halts immediately.
 
 ### 4. Anti-Starvation (*Fún ní Jẹ*) Test
 - Clear North's board to `[0, 0, 0, 0, 0, 0]`.

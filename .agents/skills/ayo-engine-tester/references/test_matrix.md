@@ -35,18 +35,18 @@ const lapState: GameState = {
 ## Fixture 3: Cascading Backward Capture & Threshold Win
 ```typescript
 const captureState: GameState = {
-  board: [0, 0, 0, 0, 0, 2, 3, 3, 0, 0, 0, 0],
-  scores: { south: 20, north: 20 },
+  board: [0, 0, 0, 0, 0, 2, 1, 2, 0, 0, 0, 0],
+  scores: { south: 21, north: 22 },
   currentTurn: 'south',
   isGameOver: false,
   winner: null,
   moveHistoryHash: [],
   zeroCaptureTurnCount: 0
 };
-// South plays pit 5 (2 seeds) -> lands in pit 6 (becomes 4) and pit 7 (becomes 4).
-// Pit 7 reaches 4 seeds -> scoops 4.
-// Reverse sweep clockwise: pit 6 has 4 seeds -> scoops 4.
-// South scores +8 -> total 28. Winner: 'south' (threshold >= 25 reached).
+// South plays pit 5 (2 seeds) -> lands in pit 6 (becomes 1+1=2) and pit 7 (becomes 2+1=3).
+// Pit 7 reaches 3 seeds -> scoops 3 seeds.
+// Reverse sweep clockwise: pit 6 has 2 seeds -> scoops 2 seeds.
+// South scores +5 -> total 26. Winner: 'south' (threshold >= 25 reached).
 ```
 
 ## Fixture 4: Anti-Starvation (*Fún ní Jẹ*) Filtering
@@ -70,19 +70,18 @@ const starvationFilterState: GameState = {
 ## Fixture 5: Grand Slam (*Jẹ Tán*) Resolution
 ```typescript
 const grandSlamState: GameState = {
-  board: [0, 0, 0, 0, 0, 3, 0, 0, 3, 0, 0, 0], // North has 3 seeds in pit 8
-  scores: { south: 20, north: 22 },
+  board: [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0], // North only has 1 in pit 6
+  scores: { south: 23, north: 23 },
   currentTurn: 'south',
   isGameOver: false,
   winner: null,
   moveHistoryHash: [],
   zeroCaptureTurnCount: 0
 };
-// South plays pit 5 (3 seeds) -> deposits in pit 6 (1), pit 7 (1), pit 8 (3+1=4).
-// Pit 8 reaches 4 seeds -> captured!
-// North is now left with pits [1, 1, 0, 0, 0, 0] (opponent NOT starved, game continues).
-// BUT if North had [0, 0, 3, 0, 0, 0] and South's move only landed in pit 8:
-// Grand Slam occurs: all fed seeds captured, North has 0, game terminates immediately.
+// South plays pit 5 (1 seed) -> lands in pit 6 (becomes 1+1=2 seeds).
+// Pit 6 reaches 2 seeds -> captured!
+// Grand Slam occurs: all fed seeds captured, North has 0 seeds left.
+// Capture stands, remaining seeds on board swept, game terminates immediately.
 ```
 
 ## Fixture 6: Threefold Repetition Cycle Detection

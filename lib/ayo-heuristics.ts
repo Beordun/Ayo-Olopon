@@ -40,13 +40,13 @@ export function getRandomProverb() {
 }
 
 /**
- * Counts the number of 3-seed traps on South's territory (0..5).
- * Pits with 3 seeds are primed for immediate 4-seed capture on South's next turn.
+ * Counts vulnerable pits (1 or 2 seeds) on South's territory (0..5).
+ * Pits with 1 or 2 seeds are vulnerable to immediate 2- or 3-seed capture.
  */
 function countSouthTraps(board: number[]): number {
   let traps = 0;
   for (let i = 0; i < 6; i++) {
-    if (board[i] === 3) traps++;
+    if (board[i] === 1 || board[i] === 2) traps++;
   }
   return traps;
 }
@@ -59,11 +59,11 @@ export function evaluateMoveForNorth(state: GameState, pitIndex: number): number
     const nextState = executeMove(state, pitIndex);
     let score = 0;
 
-    // Priority 1: Immediate 4-seed capture yield (+100 points per seed captured)
+    // Priority 1: Immediate capture yield (2 or 3 seeds per hollow) (+100 points per seed captured)
     const captured = nextState.scores.north - state.scores.north;
     score += captured * 100;
 
-    // Priority 2: Defusing opponent 3-seed traps (+50 points per trap defused)
+    // Priority 2: Defusing opponent traps (+50 points per trap defused)
     const southTrapsBefore = countSouthTraps(state.board);
     const southTrapsAfter = countSouthTraps(nextState.board);
     const trapsDefused = southTrapsBefore - southTrapsAfter;

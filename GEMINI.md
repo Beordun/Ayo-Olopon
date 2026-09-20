@@ -30,7 +30,7 @@ Ojú-oró]│                                                                 �
    $$\sum_{i=0}^{11} \text{board}[i] + \text{scores.south} + \text{scores.north} \equiv 48$$
    Validated before and after every move. Rollback turn on violation!
 2. **Cascading Captures (*Jẹ*)**:
-   Triggered only if final seed lands on **opponent side** reaching **exactly 4 seeds**. Cascade sweeps backwards in reverse sowing direction (`(index - 1 + 12) % 12`) along contiguous opponent pits with 4 seeds.
+   Triggered only if final seed lands on **opponent side** reaching **exactly 2 or 3 seeds**. Cascade sweeps backwards in reverse sowing direction (`(index - 1 + 12) % 12`) along contiguous opponent pits with 2 or 3 seeds.
 3. **Anti-Starvation (*Fún ní Jẹ*)**:
    Active player must feed an opponent who has 0 seeds if a feeding move exists. If no feeding move exists, active player sweeps all remaining seeds and game terminates.
 4. **Grand Slam (*Jẹ Tán*)**:

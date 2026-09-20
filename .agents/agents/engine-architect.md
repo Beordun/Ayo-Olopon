@@ -22,7 +22,7 @@ You are the Lead Systems & Game Theory Architect for Ayò Ọlọ́pọ́n Digit
    - **Board Representation**: Flat integer array of length 12: `0..5` (South), `6..11` (North).
    - **Sowing**: Counter-clockwise: `(current_index + 1) % 12`.
    - **Full-Lap Skipping**: If a pit holds $\ge 12$ seeds, the starting pit must be skipped on subsequent circuits.
-   - **Captures**: Occur only when the final seed lands on the opponent's side and brings that pit to exactly 4 seeds. Cascade backwards (`(i - 1 + 12) % 12`) along contiguous opponent pits having exactly 4 seeds.
+   - **Captures**: Occur only when the final seed lands on the opponent's side and brings that pit to exactly 2 or 3 seeds. Cascade backwards (`(i - 1 + 12) % 12`) along contiguous opponent pits having exactly 2 or 3 seeds.
    - **Anti-Starvation (*Fún ní Jẹ*)**: Active player must feed an empty opponent if a legal feeding move exists.
    - **Grand Slam (*Jẹ Tán*)**: If a legal feeding move captures all fed seeds leaving the opponent with 0, the capture stands and the active player sweeps all remaining seeds.
    - **Termination**: $\ge 25$ seeds captured, 3-fold repetition hash match, or low-seed stalemate ($\le 3$ seeds with 10 zero-capture turns).

@@ -78,13 +78,13 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
           <div className="p-4 rounded-2xl bg-black/30 border border-amber-950/40 space-y-2">
             <h3 className="font-bold text-amber-200 text-base flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-400" />
-              3. Jẹ (Capturing 4 Seeds)
+              3. Jẹ (Capturing 2 or 3 Seeds)
             </h3>
             <p className="text-stone-300 text-xs sm:text-sm">
-              A capture triggers if your final seed lands on the <strong>opponent&apos;s side</strong> and brings that hollow to <strong>exactly 4 seeds</strong>.
+              A capture triggers if your final seed lands on the <strong>opponent&apos;s side</strong> and brings that hollow to <strong>exactly 2 or 3 seeds</strong>.
             </p>
             <p className="text-stone-300 text-xs sm:text-sm">
-              <strong>Cascading Backward Scoop:</strong> After capturing the final pit, the engine sweeps backwards clockwise along adjacent opponent hollows. If any predecessor also contains exactly 4 seeds, it is also captured until a pit without 4 seeds is reached.
+              <strong>Cascading Backward Scoop:</strong> After capturing the final pit, the engine sweeps backwards clockwise along adjacent opponent hollows. If any contiguous predecessor also contains <strong>2 or 3 seeds</strong>, it is also scooped until a pit with a different count or your own side is reached.
             </p>
           </div>
 

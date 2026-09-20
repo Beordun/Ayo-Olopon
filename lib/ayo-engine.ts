@@ -207,16 +207,22 @@ export function executeMove(state: GameState, pitIndex: number): GameState {
   let capturedSeeds = 0;
   const finalPit = target;
 
-  // Capture triggers ONLY if final seed lands in opponent territory reaching exactly 4 seeds
-  if (isOpponentTerritory(player, finalPit) && newBoard[finalPit] === 4) {
+  // Capture triggers ONLY if final seed lands in opponent territory reaching exactly 2 or 3 seeds
+  if (
+    isOpponentTerritory(player, finalPit) &&
+    (newBoard[finalPit] === 2 || newBoard[finalPit] === 3)
+  ) {
+    capturedSeeds += newBoard[finalPit];
     newBoard[finalPit] = 0;
-    capturedSeeds += 4;
 
-    // Reverse (clockwise) sweep along contiguous opponent pits with 4 seeds
+    // Reverse (clockwise) sweep along contiguous opponent pits with 2 or 3 seeds
     let prev = (finalPit - 1 + 12) % 12;
-    while (isOpponentTerritory(player, prev) && newBoard[prev] === 4) {
+    while (
+      isOpponentTerritory(player, prev) &&
+      (newBoard[prev] === 2 || newBoard[prev] === 3)
+    ) {
+      capturedSeeds += newBoard[prev];
       newBoard[prev] = 0;
-      capturedSeeds += 4;
       prev = (prev - 1 + 12) % 12;
     }
   }

@@ -23,7 +23,7 @@ Ayò Ọlọ́pọ́n is celebrated for its deep mathematical strategy, social e
 | **Ihò** | The 12 carved circular hollows (6 pits per player). |
 | **Ojú-oró** | The elongated score storehouses carved into the left and right flanks of the board. |
 | **Tà** | Sowing seeds counter-clockwise, dropping exactly one seed per consecutive hollow. |
-| **Jẹ** | Capturing — scooping 4 seeds when the final sown seed completes a quartet in an opponent's hollow. |
+| **Jẹ** | Capturing — scooping seeds when the final sown seed brings an opponent's hollow to 2 or 3 seeds. |
 | **Fún ní Jẹ** | Anti-starvation ("feed to eat") — a mandatory rule requiring a player to feed an empty opponent if a legal path exists. |
 | **Jẹ Tán** | Grand Slam capture — capturing all newly fed seeds, legally starving the opponent and ending the match immediately. |
 | **Ọ̀tá Ayò** | The AI Grandmaster opponent. |
@@ -52,8 +52,8 @@ Ojú-oró]│                                                                 �
 - **Multi-Lap Origin Skipping Invariant**: If a pit contains $\ge 12$ seeds, sowing traverses more than a full lap of the board. The engine strictly skips the originating hollow on **every** pass (`if (target === originIndex) continue;`), ensuring no seed ever drops into the pit it was scooped from.
 
 ### 2. Cascading Captures (*Jẹ*)
-- A capture triggers when the **last seed** of a turn lands in an **opponent hollow** and brings that hollow's count to **exactly 4 seeds**.
-- The capture sweeps **backwards** in reverse sowing direction (clockwise: `(i - 1 + 12) % 12`). If the preceding pit is also in opponent territory and holds exactly 4 seeds, its seeds are captured as well. The cascade continues until a pit has $\ne 4$ seeds or crosses into the active player's territory.
+- A capture triggers when the **last seed** of a turn lands in an **opponent hollow** and brings that hollow's count to **exactly 2 or 3 seeds**.
+- The capture sweeps **backwards** in reverse sowing direction (clockwise: `(i - 1 + 12) % 12`). If the preceding pit is also in opponent territory and holds **2 or 3 seeds**, all of its seeds are captured as well. The cascade continues until a pit has $\ne 2$ and $\ne 3$ seeds (i.e. $< 2$ or $> 3$) or crosses into the active player's territory.
 
 ### 3. Anti-Starvation (*Fún ní Jẹ*)
 - If all 6 pits of an opponent are empty (0 seeds), the active player **must** choose a move that deposits at least one seed into the opponent's territory, provided such a move exists.
