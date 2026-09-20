@@ -1,0 +1,39 @@
+@import '../design-tokens/tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--md-sys-color-surface, #100805);
+  color: var(--md-sys-color-on-surface, #F6D2C4);
+  font-family: var(--md-sys-typescale-font-family, 'Bricolage Grotesque', sans-serif);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar for dark timber theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #140905;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3D1C08;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5C3119;
+}
