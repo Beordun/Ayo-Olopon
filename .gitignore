@@ -1,1 +1,54 @@
-node_modules
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Next.js build output
+/.next/
+/out/
+
+# Production build
+/build
+dist
+
+# Security: Environment variables & secrets (NEVER commit to GitHub)
+.env
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.env.*
+
+# Security: Cryptographic keys, certificates & credentials
+*.pem
+*.key
+*.crt
+*.cer
+*.pfx
+*.p12
+id_rsa*
+id_ed25519*
+secrets.*
+credentials*.json
+service-account*.json
+firebase-adminsdk*.json
+*.sqlite
+*.sqlite3
+*.db
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# OS & Editor artifacts
+.DS_Store
+*.pem
+Thumbs.db
+.vscode/
+.idea/

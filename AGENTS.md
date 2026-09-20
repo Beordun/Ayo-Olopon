@@ -198,6 +198,12 @@ $$\sum_{i=0}^{11} \text{board}[i] + \text{scores.south} + \text{scores.north} \e
   3. Priority 3 (Score: +30): Protecting friendly accumulator hollows ($\ge 10$ seeds).
   4. Priority 4 (Score: +20): Preserving legal mobility and fulfilling anti-starvation obligations.
 
+### Invariant 4: Security, Credential Protection & Secret Leak Prevention (`.agents/rules/security-credential-protection.md`)
+- **Zero Secrets Committed**: Under no circumstances may an agent, developer, or workflow stage, commit, log, or push sensitive credentials to GitHub or remote git remotes.
+- **Protected Secrets**: API keys (`GEMINI_API_KEY`), database connection strings, database passwords, private keys (`.pem`, `.key`, `id_rsa`), certificates, and service account keys (`*.json`).
+- **Storage & Boundary**: All secrets must reside exclusively in `.env.local` or host environment variables, never hardcoded in source code or client bundles.
+- **Pre-Push Inspection**: Before any `git push` or `git add`, inspect `git status` to verify no secret-bearing file is staged. Strict `.gitignore` rules must be maintained.
+
 ---
 
 ## 5. Visual & Interaction Design System

@@ -39,6 +39,8 @@ Ojú-oró]│                                                                 �
    - $\ge 25$ seeds captured = instant win.
    - 3-fold repetition of hash `"${board.join(',')}:${currentTurn}"` = terminal sweep.
    - Low-seed stalemate ($\le 3$ seeds and 10 zero-capture turns) = terminal sweep.
+6. **Security & Credential Protection (`SEC-RULE-001`)**:
+   Zero secrets committed or pushed to remote git. Never stage API keys (`GEMINI_API_KEY`), database passwords, connection strings, or private keys (`*.pem`, `*.key`, `*.json` credentials). Enforce strict `.gitignore` and pre-commit staging audits.
 
 ---
 
