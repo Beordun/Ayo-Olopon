@@ -88,3 +88,20 @@ const Hollow = () => {
   );
 };
 ```
+
+---
+
+## 5. Physical Gesture Language & Tutorial Assets (M3 Game Onboarding)
+
+In the Google M3 Design System for Games, real-world physical manipulations are formally codified under **Gesture Language & Onboarding Affordances**.
+
+### 5.1 Physical Sowing (*Tà*) Reference Standard
+- **The Physical Gesture**: In traditional Ayò, a player scoops all seeds from a starting hollow with cupped fingers and distributes them counter-clockwise, dropping **exactly one seed per hollow** through a rhythmic finger-release motion.
+- **Digital Translation Tokens**:
+  - **Sowing Cadence**: `140ms` per hollow (`designTokens.motion.game.sowPebbleStep`).
+  - **Landing Impact**: Elastic settling bounce `220ms` (`designTokens.motion.game.seedDropSettle` with `pebbleBounce` easing).
+  - **Texture Baseline**: Seeds must visually match the matte, earthy *Caesalpinia bonduc* (*ṣẹ́yọ̀*) natural pebbles shown in physical demonstration photography.
+- **Usage in Application**:
+  - Embedded in the **"How to Play" (Bí a ṣe ń tà'yò)** onboarding modal.
+  - Serves as the visual reference anchor for SVG animation and future 3D/canvas rendering.
+
