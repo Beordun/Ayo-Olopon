@@ -22,6 +22,7 @@ import {
   Trophy,
   LogOut,
   User,
+  Disc,
 } from 'lucide-react';
 
 type GameMode = 'ai' | 'local' | 'multiplayer';
@@ -29,6 +30,10 @@ type GameMode = 'ai' | 'local' | 'multiplayer';
 export default function AyoPage() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [hasEnteredGame, setHasEnteredGame] = useState(false);
+
+  // Challenge invitation parameters from URL
+  const [challengerName, setChallengerName] = useState<string | null>(null);
+  const [challengeRoom, setChallengeRoom] = useState<string | null>(null);
 
   const [gameState, setGameState] = useState<GameState>(createInitialState);
   const [gameMode, setGameMode] = useState<GameMode>('ai');
@@ -44,7 +49,7 @@ export default function AyoPage() {
   const [isHost, setIsHost] = useState(true);
   const multiplayerSessionRef = useRef<MultiplayerSession | null>(null);
 
-  // Load saved profile on initial mount
+  // Load saved profile on initial mount and check URL invitation params
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -56,19 +61,37 @@ export default function AyoPage() {
           }
         }
       } catch {}
+
+      // Check URL query parameters for challenge invitation
+      const params = new URLSearchParams(window.location.search);
+      const roomParam = params.get('room');
+      const challengerParam = params.get('challenger');
+
+      if (roomParam) {
+        setRoomId(roomParam.toUpperCase());
+        setChallengeRoom(roomParam.toUpperCase());
+        setGameMode('multiplayer');
+        setIsHost(false);
+      }
+
+      if (challengerParam) {
+        setChallengerName(challengerParam);
+      }
     }
   }, []);
 
   // Dynamic Player Names
-  const southPlayerName = userProfile?.name?.trim() || 'Gúúsù';
+  const southPlayerName = userProfile?.name?.trim() || 'Player 1';
   const northPlayerName =
     gameMode === 'ai'
-      ? 'Ọ̀tá Ayò'
+      ? 'AI Grandmaster'
       : gameMode === 'local'
       ? 'Player 2'
+      : challengerName && !isHost
+      ? challengerName
       : isHost
-      ? 'Peer'
-      : userProfile?.name?.trim() || 'Joiner';
+      ? 'Opponent'
+      : 'Challenger';
 
   // Sound Mute Toggle
   const toggleSound = () => {
@@ -210,19 +233,6 @@ export default function AyoPage() {
     setIsHost(asHost);
   };
 
-  // URL Room Code Auto-Detection
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const roomParam = params.get('room');
-      if (roomParam) {
-        setGameMode('multiplayer');
-        setIsMultiplayerOpen(true);
-        initMultiplayer(roomParam.toUpperCase(), false);
-      }
-    }
-  }, []);
-
   // -------------------------------------------------------------
   // View 1: Welcome / Landing Page (When hasEnteredGame === false)
   // -------------------------------------------------------------
@@ -231,15 +241,24 @@ export default function AyoPage() {
       <main className="min-h-screen flex flex-col items-center justify-center p-3 sm:p-6 md:p-8 max-w-6xl mx-auto font-brand select-none">
         <WelcomeScreen
           initialProfile={userProfile || undefined}
+          challengerName={challengerName || undefined}
+          challengeRoom={challengeRoom || undefined}
           onStartGame={(profile, mode) => {
             setUserProfile(profile);
             setGameMode(mode);
             setHasEnteredGame(true);
             resetGame();
+
             if (mode === 'multiplayer') {
-              setIsMultiplayerOpen(true);
-              if (!multiplayerSessionRef.current) {
-                initMultiplayer(roomId, true);
+              if (challengeRoom) {
+                // Joining existing challenge room from invitation link
+                initMultiplayer(challengeRoom, false);
+              } else {
+                // Creating a new room as host
+                setIsMultiplayerOpen(true);
+                if (!multiplayerSessionRef.current) {
+                  initMultiplayer(roomId, true);
+                }
               }
             }
           }}
@@ -262,7 +281,7 @@ export default function AyoPage() {
         {/* Cultural Brand Title & Player Profile Badge */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-ayo-chassis border border-ayo-bevel flex items-center justify-center shadow-lg">
-            <span className="text-xl">🟤</span>
+            <Disc className="w-5 h-5 text-amber-400" />
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-amber-100 uppercase">
@@ -270,10 +289,10 @@ export default function AyoPage() {
             </h1>
             <div className="flex items-center gap-2">
               <span className="text-[11px] uppercase tracking-widest text-amber-400/70 font-semibold">
-                Yoruba Board
+                African Board Game
               </span>
               <span className="text-stone-500 text-[10px]">•</span>
-              <div className="flex items-center gap-1 text-[11px] font-bold text-amber-300/90 bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-900/40">
+              <div className="flex items-center gap-1 text-[11px] font-bold text-amber-300/90 bg-amber-950/40 px-2.5 py-0.5 rounded-full border border-amber-900/40">
                 <User className="w-3 h-3 text-amber-400" />
                 <span>{southPlayerName}</span>
               </div>
@@ -288,14 +307,14 @@ export default function AyoPage() {
               setGameMode('ai');
               resetGame();
             }}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               gameMode === 'ai'
                 ? 'bg-ayo-bevel text-amber-100 shadow-md'
                 : 'text-stone-400 hover:text-amber-200'
             }`}
           >
             <Bot className="w-3.5 h-3.5" />
-            Ọ̀tá Ayò (AI)
+            AI Grandmaster
           </button>
 
           <button
@@ -303,7 +322,7 @@ export default function AyoPage() {
               setGameMode('local');
               resetGame();
             }}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               gameMode === 'local'
                 ? 'bg-ayo-bevel text-amber-100 shadow-md'
                 : 'text-stone-400 hover:text-amber-200'
@@ -321,7 +340,7 @@ export default function AyoPage() {
                 initMultiplayer(roomId, true);
               }
             }}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               gameMode === 'multiplayer'
                 ? 'bg-ayo-bevel text-amber-100 shadow-md'
                 : 'text-stone-400 hover:text-amber-200'
@@ -337,7 +356,7 @@ export default function AyoPage() {
           <button
             onClick={resetGame}
             title="Reset Board (New Game)"
-            className="p-2.5 rounded-xl bg-ayo-surfaceContainer border border-amber-950/60 text-stone-300 hover:text-amber-300 hover:border-amber-800/60 transition-all shadow-md"
+            className="p-2.5 rounded-xl bg-ayo-surfaceContainer border border-amber-950/60 text-stone-300 hover:text-amber-300 hover:border-amber-800/60 transition-all shadow-md cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -345,14 +364,14 @@ export default function AyoPage() {
           <button
             onClick={toggleSound}
             title={isMuted ? 'Unmute Sound' : 'Mute Sound'}
-            className="p-2.5 rounded-xl bg-ayo-surfaceContainer border border-amber-950/60 text-stone-300 hover:text-amber-300 hover:border-amber-800/60 transition-all shadow-md"
+            className="p-2.5 rounded-xl bg-ayo-surfaceContainer border border-amber-950/60 text-stone-300 hover:text-amber-300 hover:border-amber-800/60 transition-all shadow-md cursor-pointer"
           >
             {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4" />}
           </button>
 
           <button
             onClick={() => setIsHowToPlayOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-950/40 border border-amber-800/40 text-amber-200 text-xs font-bold hover:bg-amber-900/50 transition-all shadow-md"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-950/40 border border-amber-800/40 text-amber-200 text-xs font-bold hover:bg-amber-900/50 transition-all shadow-md cursor-pointer"
           >
             <HelpCircle className="w-4 h-4 text-amber-400" />
             <span>Rules</span>
@@ -432,7 +451,7 @@ export default function AyoPage() {
 
             <h2 className="text-3xl font-extrabold font-brand text-amber-100 mb-2 uppercase tracking-wide">
               {gameState.winner === 'draw'
-                ? 'Ayò Dọ́gba! (Draw)'
+                ? 'Game Draw!'
                 : `${gameState.winner === 'south' ? southPlayerName : northPlayerName} Wins!`}
             </h2>
 
@@ -481,6 +500,7 @@ export default function AyoPage() {
         }}
         onRequestResync={() => multiplayerSessionRef.current?.requestResync()}
         isHost={isHost}
+        playerName={southPlayerName}
       />
 
       {/* 7. How to Play Rules Modal */}

@@ -45,7 +45,7 @@ export const AiDialogueBox: React.FC<AiDialogueBoxProps> = ({
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-2">
               <span className="font-brand font-bold text-sm tracking-wide text-amber-200">
-                Ọ̀tá Ayò
+                AI Grandmaster
               </span>
               <span className="text-[10px] uppercase font-brand tracking-widest px-2 py-0.5 rounded-full bg-amber-950/60 border border-amber-800/40 text-amber-300/80 font-semibold">
                 Grandmaster
@@ -60,14 +60,14 @@ export const AiDialogueBox: React.FC<AiDialogueBoxProps> = ({
             )}
           </div>
 
-          {/* Dialogue / Proverb Display */}
+          {/* Dialogue / Commentary Display */}
           {isAiThinking ? (
             <p className="text-sm font-brand text-stone-400 italic">
-              Consulting the ancient wisdom of the board...
+              Analyzing board geometry and tactical traps...
             </p>
           ) : lastAiResponse ? (
             <div className="space-y-2">
-              {/* Yoruba Proverb Taunt */}
+              {/* Grandmaster Wisdom / Proverb */}
               <div className="flex items-start gap-2 bg-black/20 p-2.5 rounded-xl border border-amber-950/40">
                 <Quote className="w-4 h-4 text-amber-400/70 flex-shrink-0 mt-0.5" />
                 <p className="text-xs sm:text-sm font-brand font-medium italic text-amber-100/90 leading-relaxed">
@@ -83,7 +83,7 @@ export const AiDialogueBox: React.FC<AiDialogueBoxProps> = ({
             </div>
           ) : (
             <p className="text-xs sm:text-sm font-brand text-stone-400">
-              Select any hollow on your side (Gúúsù 0–5) to initiate play. Ọ̀tá Ayò awaits your move.
+              Select any non-empty hollow on your side to make your move. The AI Grandmaster awaits your turn.
             </p>
           )}
         </div>

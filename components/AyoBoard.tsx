@@ -128,7 +128,7 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
           {/* West Flank: North Player Score Storehouse (Ojú-oró Àríwá) */}
           <div className="flex flex-col items-center gap-2 order-2 lg:order-1">
             <span className="text-xs font-brand uppercase tracking-widest text-amber-200/80 font-bold truncate max-w-[130px] text-center">
-              Ojú-oró ({northPlayerName})
+              Storehouse ({northPlayerName})
             </span>
             <div
               className="relative w-28 h-20 sm:w-32 sm:h-24 lg:w-24 lg:h-52 rounded-[28px] flex flex-col items-center justify-center p-3 border border-amber-900/40"
@@ -162,7 +162,7 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
             <div className="relative w-full flex items-center justify-center my-[-8px]">
               <div className="h-[2px] w-5/6 bg-gradient-to-r from-transparent via-amber-900/30 to-transparent" />
               <div className="absolute px-3 py-0.5 rounded-full bg-ayo-chassis border border-amber-950/40 text-[9px] uppercase tracking-widest text-amber-400/50 font-brand">
-                Ọpọ́n Ayò
+                Ayò Ọlọ́pọ́n
               </div>
             </div>
 
@@ -175,7 +175,7 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
           {/* East Flank: South Player Score Storehouse (Ojú-oró Gúúsù) */}
           <div className="flex flex-col items-center gap-2 order-3">
             <span className="text-xs font-brand uppercase tracking-widest text-amber-200/80 font-bold truncate max-w-[130px] text-center">
-              Ojú-oró ({southPlayerName})
+              Storehouse ({southPlayerName})
             </span>
             <div
               className="relative w-28 h-20 sm:w-32 sm:h-24 lg:w-24 lg:h-52 rounded-[28px] flex flex-col items-center justify-center p-3 border border-amber-900/40"

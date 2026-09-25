@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { PeerConnectionStatus } from '@/lib/multiplayer-host';
-import { X, Copy, Check, Users, RefreshCw, Radio } from 'lucide-react';
+import { X, Copy, Check, Users, RefreshCw, Radio, Share2, Swords } from 'lucide-react';
 
 interface MultiplayerModalProps {
   isOpen: boolean;
@@ -13,6 +13,7 @@ interface MultiplayerModalProps {
   onCreateRoom: () => void;
   onRequestResync: () => void;
   isHost: boolean;
+  playerName?: string;
 }
 
 export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
@@ -24,18 +25,38 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
   onCreateRoom,
   onRequestResync,
   isHost,
+  playerName = 'Player',
 }) => {
   const [inputRoomId, setInputRoomId] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedMessage, setCopiedMessage] = useState(false);
 
   if (!isOpen) return null;
 
+  const getShareUrl = () => {
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}?room=${roomId}&challenger=${encodeURIComponent(playerName)}`;
+    }
+    return `?room=${roomId}&challenger=${encodeURIComponent(playerName)}`;
+  };
+
+  const getChallengeMessage = () => {
+    return `${playerName} has challenged you to play Ayò Ọlọ́pọ́n. Accept the challenge here: ${getShareUrl()}`;
+  };
+
   const handleCopyLink = () => {
     if (typeof window !== 'undefined') {
-      const shareUrl = `${window.location.origin}?room=${roomId}`;
-      navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      navigator.clipboard.writeText(getShareUrl());
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
+
+  const handleCopyChallengeMessage = () => {
+    if (typeof window !== 'undefined') {
+      navigator.clipboard.writeText(getChallengeMessage());
+      setCopiedMessage(true);
+      setTimeout(() => setCopiedMessage(false), 2000);
     }
   };
 
@@ -66,7 +87,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
         return (
           <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-brand bg-red-950/80 text-red-400 border border-red-800/50">
             <span className="w-2 h-2 rounded-full bg-red-400" />
-            Desynced
+            Desynchronized
           </span>
         );
       default:
@@ -90,7 +111,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-full text-stone-400 hover:text-amber-200 hover:bg-white/5 transition-colors"
+          className="absolute top-5 right-5 p-2 rounded-full text-stone-400 hover:text-amber-200 hover:bg-white/5 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -102,48 +123,71 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
           </div>
           <div>
             <h2 className="text-xl font-bold font-brand text-amber-100">
-              Multiplayer Arena
+              Online Multiplayer
             </h2>
             <p className="text-xs font-brand text-stone-400">
-              Authoritative Host P2P Network
+              Peer-to-Peer Realtime Match
             </p>
           </div>
         </div>
 
         {/* Status Bar */}
-        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-black/40 border border-amber-950/40 mb-6">
+        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-black/40 border border-amber-950/40 mb-5">
           <div className="flex items-center gap-2">
             <Radio className="w-4 h-4 text-stone-400" />
-            <span className="text-xs font-brand text-stone-300">Status:</span>
+            <span className="text-xs font-brand text-stone-300">Connection Status:</span>
           </div>
           {getStatusBadge()}
         </div>
 
-        {/* Room Management */}
+        {/* Room & Challenge Management */}
         <div className="space-y-5">
-          {/* Current Room Section */}
+          {/* Challenge & Invite Section */}
           <div className="space-y-2">
-            <label className="text-xs uppercase tracking-wider font-brand font-bold text-amber-300/80">
-              Current Room Code {isHost && '(Host: South)'}
+            <label className="text-xs uppercase tracking-wider font-brand font-bold text-amber-300/90 flex items-center gap-1.5">
+              <Swords className="w-3.5 h-3.5 text-amber-400" />
+              <span>Invite Friend & Challenge</span>
             </label>
+
+            {/* Room Code & Copy Link */}
             <div className="flex gap-2">
-              <div className="flex-1 px-4 py-2.5 rounded-xl bg-black/50 border border-amber-900/40 font-mono text-base font-bold text-amber-100 flex items-center">
-                {roomId}
+              <div className="flex-1 px-4 py-2.5 rounded-xl bg-black/50 border border-amber-900/40 font-mono text-base font-bold text-amber-100 flex items-center justify-between">
+                <span>{roomId}</span>
+                <span className="text-[10px] text-amber-400/70 font-brand uppercase tracking-wider">
+                  {isHost ? 'Host' : 'Peer'}
+                </span>
               </div>
               <button
                 onClick={handleCopyLink}
-                className="px-4 py-2.5 rounded-xl font-brand font-semibold text-xs bg-ayo-bevel hover:bg-ayo-bevelHighlight text-amber-100 transition-colors flex items-center gap-1.5 shadow-md"
+                className="px-4 py-2.5 rounded-xl font-brand font-semibold text-xs bg-ayo-bevel hover:bg-ayo-bevelHighlight text-amber-100 transition-colors flex items-center gap-1.5 shadow-md cursor-pointer"
+                title="Copy Invitation Link"
               >
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                {copied ? 'Copied' : 'Invite'}
+                {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                <span>{copiedLink ? 'Link Copied' : 'Copy Link'}</span>
               </button>
             </div>
+
+            {/* Share Challenge Message Button */}
+            <button
+              onClick={handleCopyChallengeMessage}
+              className="w-full mt-2 py-2.5 px-4 rounded-xl bg-amber-950/40 border border-amber-800/40 text-amber-200 hover:text-amber-100 hover:bg-amber-900/50 transition-colors text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+            >
+              <Share2 className="w-4 h-4 text-amber-400" />
+              <span>
+                {copiedMessage
+                  ? 'Challenge Message Copied!'
+                  : `Copy Challenge: "${playerName} has challenged you to play"`}
+              </span>
+            </button>
+            <p className="text-[11px] text-stone-400 italic text-center">
+              Send this link to your opponent. Once accepted, they will land on the match screen to play with you.
+            </p>
           </div>
 
           <div className="relative flex py-1 items-center">
             <div className="flex-grow border-t border-amber-950/60" />
             <span className="flex-shrink mx-4 text-xs font-brand uppercase tracking-widest text-stone-500">
-              Or Join Peer
+              Or Join An Existing Room
             </span>
             <div className="flex-grow border-t border-amber-950/60" />
           </div>
@@ -152,7 +196,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
           <div className="flex gap-2">
             <input
               type="text"
-              placeholder="Enter 6-char Room Code"
+              placeholder="Enter Room Code (e.g. AYO-1234)"
               value={inputRoomId}
               onChange={(e) => setInputRoomId(e.target.value.toUpperCase())}
               className="flex-1 px-4 py-2.5 rounded-xl bg-black/50 border border-amber-900/40 font-brand text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-500"
@@ -162,7 +206,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
                 if (inputRoomId.trim()) onJoinRoom(inputRoomId.trim());
               }}
               disabled={!inputRoomId.trim()}
-              className="px-5 py-2.5 rounded-xl font-brand font-bold text-sm bg-ayo-secondary hover:bg-amber-500 text-stone-950 transition-colors disabled:opacity-40 shadow-md"
+              className="px-5 py-2.5 rounded-xl font-brand font-bold text-sm bg-ayo-secondary hover:bg-amber-500 text-stone-950 transition-colors disabled:opacity-40 shadow-md cursor-pointer"
             >
               Join
             </button>
@@ -172,15 +216,15 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
           <div className="flex items-center justify-between pt-2">
             <button
               onClick={onCreateRoom}
-              className="text-xs font-brand text-amber-300/80 hover:text-amber-200 underline underline-offset-4"
+              className="text-xs font-brand text-amber-300/80 hover:text-amber-200 underline underline-offset-4 cursor-pointer"
             >
-              Generate New Room
+              Generate New Room Code
             </button>
 
             {connectionStatus === 'desynced' && (
               <button
                 onClick={onRequestResync}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-brand font-bold bg-amber-900/60 text-amber-200 hover:bg-amber-800/80 border border-amber-700/50"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-brand font-bold bg-amber-900/60 text-amber-200 hover:bg-amber-800/80 border border-amber-700/50 cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 Resync Board
