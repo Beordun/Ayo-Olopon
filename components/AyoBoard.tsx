@@ -28,34 +28,59 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
 }) => {
   const [animatingPit, setAnimatingPit] = useState<number | null>(null);
   const [highlightedPits, setHighlightedPits] = useState<number[]>([]);
+  const [isSowing, setIsSowing] = useState(false);
 
   // North row is visually displayed left-to-right as [11, 10, 9, 8, 7, 6] to preserve counter-clockwise flow
   const northPits = [11, 10, 9, 8, 7, 6];
   // South row is visually displayed left-to-right as [0, 1, 2, 3, 4, 5]
   const southPits = [0, 1, 2, 3, 4, 5];
 
-  // Visual animation effect when lastMove changes
+  // Display name on board: remove "Grandmaster" and leave only "AI" for proper hole spacing/wrapping
+  const displayNorthName = northPlayerName.replace(/grandmaster/i, '').trim() || 'AI';
+  const displaySouthName = southPlayerName;
+
+  // Visual animation effect when lastMove changes — reduced speed for deliberate tactile seed drops
   useEffect(() => {
     if (gameState.lastMove?.sownPits && gameState.lastMove.sownPits.length > 0) {
       const path = gameState.lastMove.sownPits;
+      // Reduced sowing speed: 280ms per consecutive hollow allows each seed to be clearly seen & heard
+      const DROP_INTERVAL = 280;
+      const PULSE_DURATION = 220;
+
+      setIsSowing(true);
+      const timers: NodeJS.Timeout[] = [];
+
       path.forEach((pit, idx) => {
-        setTimeout(() => {
+        const timer = setTimeout(() => {
           setAnimatingPit(pit);
           sound.playSeedClick(1 + (idx % 4) * 0.08);
-          setTimeout(() => setAnimatingPit(null), 180);
-        }, idx * 110);
+          setTimeout(() => setAnimatingPit(null), PULSE_DURATION);
+        }, idx * DROP_INTERVAL);
+        timers.push(timer);
       });
 
       if (gameState.lastMove.capturedSeeds > 0) {
-        setTimeout(() => {
+        const captureTimer = setTimeout(() => {
           sound.playCapture();
-        }, path.length * 110 + 60);
+        }, path.length * DROP_INTERVAL + 120);
+        timers.push(captureTimer);
       }
+
+      const finishTimer = setTimeout(() => {
+        setIsSowing(false);
+      }, path.length * DROP_INTERVAL + 250);
+      timers.push(finishTimer);
+
+      return () => {
+        timers.forEach(clearTimeout);
+        setAnimatingPit(null);
+        setIsSowing(false);
+      };
     }
   }, [gameState.lastMove]);
 
   const handlePitInteraction = (pitIndex: number) => {
-    if (disabled || isAiThinking) return;
+    if (disabled || isAiThinking || isSowing) return;
     if (!legalMoves.includes(pitIndex)) return;
 
     sound.playScoop();
@@ -73,8 +98,8 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
     return (
       <div key={pitIndex} className="flex flex-col items-center gap-1.5 select-none">
         {/* Territory & Index Indicator */}
-        <span className="text-[11px] font-brand tracking-wider uppercase font-semibold text-stone-400/70 truncate max-w-[76px] text-center">
-          {isNorth ? `${northPlayerName} ${pitIndex}` : `${southPlayerName} ${pitIndex}`}
+        <span className="text-[10px] sm:text-[11px] font-brand tracking-wider uppercase font-semibold text-stone-400/70 truncate max-w-[68px] sm:max-w-[76px] text-center">
+          {isNorth ? `${displayNorthName} ${pitIndex}` : `${displaySouthName} ${pitIndex}`}
         </span>
 
         {/* The Carved Circular Hollow (Ihò) */}
@@ -83,17 +108,17 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
           data-pit-index={pitIndex}
           data-pit-count={seedCount}
           onClick={() => handlePitInteraction(pitIndex)}
-          disabled={disabled || !isLegal || isAiThinking}
+          disabled={disabled || !isLegal || isAiThinking || isSowing}
           aria-label={`Pit ${pitIndex}, ${seedCount} seeds`}
           className={`relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all duration-300 ${
-            isLegal && !disabled && !isAiThinking
+            isLegal && !disabled && !isAiThinking && !isSowing
               ? 'cursor-pointer hover:scale-105 active:scale-95 ring-2 ring-amber-500/40 shadow-activeGlow'
               : 'cursor-default opacity-95'
           } ${isAnimating ? 'scale-110' : ''}`}
           style={{
             backgroundColor: '#140A05',
             boxShadow:
-              isLegal && !disabled && !isAiThinking
+              isLegal && !disabled && !isAiThinking && !isSowing
                 ? 'inset 0 8px 16px rgba(0,0,0,0.95), 0 0 16px rgba(232, 157, 115, 0.55)'
                 : 'inset 0 8px 16px rgba(0,0,0,0.95), inset 0 -2px 4px rgba(92,49,25,0.35)',
           }}
@@ -128,7 +153,7 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
           {/* West Flank: North Player Score Storehouse (Ojú-oró Àríwá) */}
           <div className="flex flex-col items-center gap-2 order-2 lg:order-1">
             <span className="text-xs font-brand uppercase tracking-widest text-amber-200/80 font-bold truncate max-w-[130px] text-center">
-              Storehouse ({northPlayerName})
+              Storehouse ({displayNorthName})
             </span>
             <div
               className="relative w-28 h-20 sm:w-32 sm:h-24 lg:w-24 lg:h-52 rounded-[28px] flex flex-col items-center justify-center p-3 border border-amber-900/40"

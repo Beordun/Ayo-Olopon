@@ -44,9 +44,11 @@ export default function AyoPage() {
   const [isMultiplayerOpen, setIsMultiplayerOpen] = useState(false);
 
   // Multiplayer State
-  const [roomId, setRoomId] = useState<string>('AYO-01');
+  const [roomId, setRoomId] = useState<string>(() => `AYO-${Math.floor(1000 + Math.random() * 9000)}`);
   const [multiplayerStatus, setMultiplayerStatus] = useState<PeerConnectionStatus>('disconnected');
   const [isHost, setIsHost] = useState(true);
+  const [opponentPlayerName, setOpponentPlayerName] = useState<string | null>(null);
+  const [matchNotification, setMatchNotification] = useState<string | null>(null);
   const multiplayerSessionRef = useRef<MultiplayerSession | null>(null);
 
   // Load saved profile on initial mount and check URL invitation params
@@ -84,9 +86,11 @@ export default function AyoPage() {
   const southPlayerName = userProfile?.name?.trim() || 'Player 1';
   const northPlayerName =
     gameMode === 'ai'
-      ? 'AI Grandmaster'
+      ? 'AI'
       : gameMode === 'local'
       ? 'Player 2'
+      : opponentPlayerName
+      ? opponentPlayerName
       : challengerName && !isHost
       ? challengerName
       : isHost
@@ -183,7 +187,13 @@ export default function AyoPage() {
   // Trigger AI if it's North's turn in AI mode
   useEffect(() => {
     if (gameMode === 'ai' && gameState.currentTurn === 'north' && !gameState.isGameOver && hasEnteredGame) {
-      triggerAiTurn(gameState);
+      // Delay AI thinking so human player's seed dropping animation finishes completely
+      const sownCount = gameState.lastMove?.sownPits?.length || 0;
+      const animationWait = sownCount > 0 ? sownCount * 280 + 350 : 250;
+      const timer = setTimeout(() => {
+        triggerAiTurn(gameState);
+      }, animationWait);
+      return () => clearTimeout(timer);
     }
   }, [gameState.currentTurn, gameMode, gameState.isGameOver, hasEnteredGame, triggerAiTurn, gameState]);
 
@@ -207,10 +217,12 @@ export default function AyoPage() {
   };
 
   // Initialize or Switch Multiplayer Session
-  const initMultiplayer = (room: string, asHost: boolean) => {
+  const initMultiplayer = (room: string, asHost: boolean, playerName?: string) => {
     if (multiplayerSessionRef.current) {
       multiplayerSessionRef.current.destroy();
     }
+
+    const effectivePlayerName = playerName || userProfile?.name?.trim() || (asHost ? 'Player 1' : 'Player 2');
 
     const session = new MultiplayerSession(
       asHost ? 'south' : 'north',
@@ -218,12 +230,36 @@ export default function AyoPage() {
       {
         onStateUpdate: (newState) => setGameState(newState),
         onStatusChange: (status) => setMultiplayerStatus(status),
-        onError: (msg) => alert(`Multiplayer: ${msg}`),
+        onError: (msg) => console.warn(`Multiplayer: ${msg}`),
         onOpponentForfeit: () => {
           alert('Opponent has forfeited the match.');
           resetGame();
         },
-      }
+        onChallengeAccepted: (acceptedOpponentName) => {
+          // DIRECT HOST TO ONLINE PEER TAB TO START THE GAME
+          setGameMode('multiplayer');
+          setHasEnteredGame(true);
+          setIsMultiplayerOpen(false);
+
+          if (acceptedOpponentName) {
+            setOpponentPlayerName(acceptedOpponentName);
+          }
+
+          const freshState = createInitialState();
+          setGameState(freshState);
+
+          sound.playScoop();
+          const nameToShow = acceptedOpponentName || 'Opponent';
+          setMatchNotification(`${nameToShow} accepted your challenge! Game started — your turn (South).`);
+          setTimeout(() => setMatchNotification(null), 6000);
+        },
+        onOpponentName: (name) => {
+          if (name) {
+            setOpponentPlayerName(name);
+          }
+        },
+      },
+      effectivePlayerName
     );
 
     session.registerHostStateProvider(() => gameState);
@@ -252,13 +288,11 @@ export default function AyoPage() {
             if (mode === 'multiplayer') {
               if (challengeRoom) {
                 // Joining existing challenge room from invitation link
-                initMultiplayer(challengeRoom, false);
+                initMultiplayer(challengeRoom, false, profile.name);
               } else {
                 // Creating a new room as host
                 setIsMultiplayerOpen(true);
-                if (!multiplayerSessionRef.current) {
-                  initMultiplayer(roomId, true);
-                }
+                initMultiplayer(roomId, true, profile.name);
               }
             }
           }}
@@ -336,8 +370,8 @@ export default function AyoPage() {
             onClick={() => {
               setGameMode('multiplayer');
               setIsMultiplayerOpen(true);
-              if (!multiplayerSessionRef.current) {
-                initMultiplayer(roomId, true);
+              if (!multiplayerSessionRef.current || multiplayerSessionRef.current.roomId !== roomId) {
+                initMultiplayer(roomId, true, southPlayerName);
               }
             }}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -388,6 +422,22 @@ export default function AyoPage() {
           </button>
         </div>
       </header>
+
+      {/* Realtime Match Notification Banner */}
+      {matchNotification && (
+        <div className="w-full mb-4 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/90 via-emerald-900/80 to-emerald-950/90 border-2 border-emerald-500/80 text-emerald-200 text-xs sm:text-sm font-bold flex items-center justify-between shadow-xl animate-fadeIn">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+            <span>{matchNotification}</span>
+          </div>
+          <button
+            onClick={() => setMatchNotification(null)}
+            className="text-emerald-400 hover:text-emerald-100 text-xs underline cursor-pointer"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* 2. Turn Telemetry Banner */}
       <div className="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl bg-black/30 border border-amber-950/40 mb-4">
@@ -491,12 +541,12 @@ export default function AyoPage() {
         connectionStatus={multiplayerStatus}
         roomId={roomId}
         onJoinRoom={(id) => {
-          initMultiplayer(id, false);
+          initMultiplayer(id, false, southPlayerName);
           setIsMultiplayerOpen(false);
         }}
         onCreateRoom={() => {
           const newCode = `AYO-${Math.floor(1000 + Math.random() * 9000)}`;
-          initMultiplayer(newCode, true);
+          initMultiplayer(newCode, true, southPlayerName);
         }}
         onRequestResync={() => multiplayerSessionRef.current?.requestResync()}
         isHost={isHost}

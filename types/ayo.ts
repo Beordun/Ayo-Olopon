@@ -46,7 +46,8 @@ export type NetworkMessageType =
   | 'MOVE_ACTION' 
   | 'STATE_SYNC' 
   | 'RESYNC_REQUEST' 
-  | 'FORFEIT';
+  | 'FORFEIT'
+  | 'CHALLENGE_ACCEPTED';
 
 export interface NetworkMessage {
   type: NetworkMessageType;
@@ -54,6 +55,7 @@ export interface NetworkMessage {
   pitIndex?: number;            // [0..5] for South, [6..11] for North
   state?: GameState;            // Authoritative snapshot from Host
   sender: PlayerSide;
+  playerName?: string;          // Name of player sending the message
 }
 
 export type SignalingMessageType =

@@ -13,6 +13,8 @@ export interface MultiplayerCallbacks {
   onStatusChange: (status: PeerConnectionStatus) => void;
   onError: (message: string) => void;
   onOpponentForfeit: () => void;
+  onChallengeAccepted?: (opponentName?: string) => void;
+  onOpponentName?: (opponentName: string) => void;
 }
 
 const RTC_CONFIG: RTCConfiguration = {
@@ -25,6 +27,7 @@ const RTC_CONFIG: RTCConfiguration = {
 export class MultiplayerSession {
   public role: PlayerSide; // 'south' = Host, 'north' = Client
   public roomId: string;
+  public playerName?: string;
   public status: PeerConnectionStatus = 'disconnected';
   private peerConnection: RTCPeerConnection | null = null;
   private dataChannel: RTCDataChannel | null = null;
@@ -33,10 +36,11 @@ export class MultiplayerSession {
   private callbacks: MultiplayerCallbacks;
   private reconnectTimer: NodeJS.Timeout | null = null;
 
-  constructor(role: PlayerSide, roomId: string, callbacks: MultiplayerCallbacks) {
+  constructor(role: PlayerSide, roomId: string, callbacks: MultiplayerCallbacks, playerName?: string) {
     this.role = role;
     this.roomId = roomId;
     this.callbacks = callbacks;
+    this.playerName = playerName;
 
     // Use BroadcastChannel for zero-config multi-tab local play on the same machine
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
@@ -85,12 +89,29 @@ export class MultiplayerSession {
         this.setupDataChannel(this.dataChannel);
       };
     }
+
+    if (this.role === 'north') {
+      // Announce challenge acceptance immediately across local and network channels
+      this.sendChallengeAccepted();
+    }
+  }
+
+  public sendChallengeAccepted() {
+    this.broadcastMessage({
+      type: 'CHALLENGE_ACCEPTED',
+      moveId: 0,
+      sender: 'north',
+      playerName: this.playerName,
+    });
   }
 
   private setupDataChannel(channel: RTCDataChannel) {
     channel.onopen = () => {
       this.clearReconnectTimer();
       this.setStatus('connected');
+      if (this.role === 'north') {
+        this.sendChallengeAccepted();
+      }
     };
     channel.onclose = () => {
       this.startReconnectTimer();
@@ -122,6 +143,7 @@ export class MultiplayerSession {
           moveId: this.moveSequence,
           state: nextState,
           sender: 'south',
+          playerName: this.playerName,
         });
         return nextState;
       } catch (err: any) {
@@ -136,6 +158,7 @@ export class MultiplayerSession {
         moveId: this.moveSequence,
         pitIndex,
         sender: 'north',
+        playerName: this.playerName,
       });
       return currentState; // Client does NOT mutate locally until STATE_SYNC arrives
     }
@@ -148,6 +171,17 @@ export class MultiplayerSession {
     if (msg.sender === this.role) return; // Ignore self-broadcasts
 
     switch (msg.type) {
+      case 'CHALLENGE_ACCEPTED':
+        if (this.role === 'south') {
+          this.setStatus('connected');
+          if (msg.playerName) {
+            this.callbacks.onOpponentName?.(msg.playerName);
+          }
+          this.callbacks.onChallengeAccepted?.(msg.playerName);
+          this.broadcastCurrentState();
+        }
+        break;
+
       case 'MOVE_ACTION':
         if (this.role === 'south' && typeof msg.pitIndex === 'number') {
           // Host receives Client move intent, runs engine, and broadcasts back
@@ -159,6 +193,10 @@ export class MultiplayerSession {
         if (msg.state) {
           try {
             assert48SeedConservation(msg.state);
+            this.setStatus('connected');
+            if (msg.playerName) {
+              this.callbacks.onOpponentName?.(msg.playerName);
+            }
             this.callbacks.onStateUpdate(msg.state);
           } catch (e) {
             console.warn('[Multiplayer] State desync detected. Requesting resync.');
@@ -200,6 +238,7 @@ export class MultiplayerSession {
         moveId: this.moveSequence,
         state: nextState,
         sender: 'south',
+        playerName: this.playerName,
       });
     } catch (err: any) {
       this.callbacks.onError(err.message || 'Illegal move from opponent');
@@ -215,6 +254,7 @@ export class MultiplayerSession {
       moveId: this.moveSequence,
       state: currentState,
       sender: 'south',
+      playerName: this.playerName,
     });
   }
 
