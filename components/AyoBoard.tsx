@@ -12,6 +12,8 @@ interface AyoBoardProps {
   disabled?: boolean;
   playerPerspective?: PlayerSide; // 'south' (default) or 'north'
   isAiThinking?: boolean;
+  southPlayerName?: string;
+  northPlayerName?: string;
 }
 
 export const AyoBoard: React.FC<AyoBoardProps> = ({
@@ -21,6 +23,8 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
   disabled = false,
   playerPerspective = 'south',
   isAiThinking = false,
+  southPlayerName = 'Gúúsù',
+  northPlayerName = 'Àríwá',
 }) => {
   const [animatingPit, setAnimatingPit] = useState<number | null>(null);
   const [highlightedPits, setHighlightedPits] = useState<number[]>([]);
@@ -69,8 +73,8 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
     return (
       <div key={pitIndex} className="flex flex-col items-center gap-1.5 select-none">
         {/* Territory & Index Indicator */}
-        <span className="text-[11px] font-brand tracking-wider uppercase font-semibold text-stone-400/70">
-          {isNorth ? `Àríwá ${pitIndex}` : `Gúúsù ${pitIndex}`}
+        <span className="text-[11px] font-brand tracking-wider uppercase font-semibold text-stone-400/70 truncate max-w-[76px] text-center">
+          {isNorth ? `${northPlayerName} ${pitIndex}` : `${southPlayerName} ${pitIndex}`}
         </span>
 
         {/* The Carved Circular Hollow (Ihò) */}
@@ -123,8 +127,8 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
           
           {/* West Flank: North Player Score Storehouse (Ojú-oró Àríwá) */}
           <div className="flex flex-col items-center gap-2 order-2 lg:order-1">
-            <span className="text-xs font-brand uppercase tracking-widest text-amber-200/80 font-bold">
-              Ojú-oró (North)
+            <span className="text-xs font-brand uppercase tracking-widest text-amber-200/80 font-bold truncate max-w-[130px] text-center">
+              Ojú-oró ({northPlayerName})
             </span>
             <div
               className="relative w-28 h-20 sm:w-32 sm:h-24 lg:w-24 lg:h-52 rounded-[28px] flex flex-col items-center justify-center p-3 border border-amber-900/40"
@@ -170,8 +174,8 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
 
           {/* East Flank: South Player Score Storehouse (Ojú-oró Gúúsù) */}
           <div className="flex flex-col items-center gap-2 order-3">
-            <span className="text-xs font-brand uppercase tracking-widest text-amber-200/80 font-bold">
-              Ojú-oró (South)
+            <span className="text-xs font-brand uppercase tracking-widest text-amber-200/80 font-bold truncate max-w-[130px] text-center">
+              Ojú-oró ({southPlayerName})
             </span>
             <div
               className="relative w-28 h-20 sm:w-32 sm:h-24 lg:w-24 lg:h-52 rounded-[28px] flex flex-col items-center justify-center p-3 border border-amber-900/40"

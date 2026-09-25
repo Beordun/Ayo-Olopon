@@ -5,6 +5,11 @@
 
 export type PlayerSide = 'south' | 'north';
 
+export interface UserProfile {
+  name: string;
+  gender: 'male' | 'female' | 'other' | '';
+}
+
 export interface GameState {
   board: number[];              // Length 12 array of pit counts [0..11]
   scores: {
