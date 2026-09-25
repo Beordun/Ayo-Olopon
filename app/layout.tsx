@@ -7,6 +7,14 @@ export const metadata: Metadata = {
     'High-fidelity, culturally authentic web implementation of the traditional Yoruba count-and-capture board game Ayò Ọlọ́pọ́n. Built with Next.js, Material 3, and Gemini AI Grandmaster.',
   keywords: ['Ayo Olopon', 'Yoruba board game', 'Mancala', 'African games', 'Oware', 'Next.js game'],
   authors: [{ name: 'Ayò Ọlọ́pọ́n Digital Team' }],
+  icons: {
+    icon: [
+      { url: '/logo.jpg' },
+      { url: '/favicon.ico' },
+    ],
+    shortcut: '/logo.jpg',
+    apple: '/logo.jpg',
+  },
 };
 
 export const viewport: Viewport = {
