@@ -23,6 +23,7 @@ import {
   LogOut,
   User,
   Disc,
+  AlertTriangle,
 } from 'lucide-react';
 
 type GameMode = 'ai' | 'local' | 'multiplayer';
@@ -49,6 +50,8 @@ export default function AyoPage() {
   const [isHost, setIsHost] = useState(true);
   const [opponentPlayerName, setOpponentPlayerName] = useState<string | null>(null);
   const [matchNotification, setMatchNotification] = useState<string | null>(null);
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
+  const [isForfeitModalOpen, setIsForfeitModalOpen] = useState(false);
   const multiplayerSessionRef = useRef<MultiplayerSession | null>(null);
   const gameStateRef = useRef<GameState>(gameState);
   const hasChallengeStartedRef = useRef(false);
@@ -166,12 +169,11 @@ export default function AyoPage() {
     setHasEnteredGame(false);
   };
 
-  // Exit Game Guard: Alert the user if an active game is in progress
+  // Exit Game Guard: In-Game UI Alert if an active game is in progress
   const handleExitGame = () => {
     if (!gameState.isGameOver) {
-      alert('A game is in progress.');
-      const confirmExit = window.confirm('Are you sure you want to exit?');
-      if (!confirmExit) return;
+      setIsExitModalOpen(true);
+      return;
     }
     exitToLanding();
   };
@@ -281,8 +283,7 @@ export default function AyoPage() {
         onStatusChange: (status) => setMultiplayerStatus(status),
         onError: (msg) => console.warn(`Multiplayer: ${msg}`),
         onOpponentForfeit: () => {
-          alert('Opponent has forfeited the match.');
-          resetGame();
+          setIsForfeitModalOpen(true);
         },
         onChallengeAccepted: (acceptedOpponentName) => {
           if (hasChallengeStartedRef.current) {
@@ -658,6 +659,79 @@ export default function AyoPage() {
 
       {/* 7. How to Play Rules Modal */}
       <HowToPlayModal isOpen={isHowToPlayOpen} onClose={() => setIsHowToPlayOpen(false)} />
+
+      {/* 8. In-Game Alert Modal: Ongoing Game Exit Guard */}
+      {isExitModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+          <div className="w-full max-w-md rounded-3xl p-6 sm:p-8 border-2 border-amber-900/80 text-center relative overflow-hidden bg-[#1E0F08]">
+            {/* Warning Shield / Alert Icon */}
+            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-950/70 border border-amber-700/60 flex items-center justify-center text-amber-400">
+              <AlertTriangle className="w-7 h-7" />
+            </div>
+
+            <h2 className="text-2xl sm:text-3xl font-extrabold font-brand text-amber-100 mb-2 uppercase tracking-wide">
+              A Game is in Progress
+            </h2>
+
+            <p className="text-xs sm:text-sm font-brand text-stone-300 mb-6 max-w-sm mx-auto leading-relaxed">
+              An active match is currently underway. Exiting now will forfeit the game and reset the board.
+            </p>
+
+            {/* In-Game Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
+              <button
+                type="button"
+                onClick={() => setIsExitModalOpen(false)}
+                className="w-full sm:flex-1 py-3.5 px-4 rounded-xl font-brand font-bold text-sm bg-amber-600 hover:bg-amber-500 text-stone-950 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_2px_12px_rgba(217,119,6,0.3)]"
+              >
+                <span>Continue Playing</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsExitModalOpen(false);
+                  exitToLanding();
+                }}
+                className="w-full sm:w-auto py-3.5 px-6 rounded-xl font-brand font-bold text-sm bg-black/60 border border-amber-900/60 text-stone-400 hover:text-red-300 hover:border-red-900/60 hover:bg-red-950/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Exit Game</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 9. In-Game Alert Modal: Opponent Forfeited Match */}
+      {isForfeitModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+          <div className="w-full max-w-md rounded-3xl p-6 sm:p-8 border-2 border-amber-900/80 text-center relative overflow-hidden bg-[#1E0F08]">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-950/70 border border-amber-700/60 flex items-center justify-center text-amber-400">
+              <Trophy className="w-7 h-7 text-amber-300" />
+            </div>
+
+            <h2 className="text-2xl sm:text-3xl font-extrabold font-brand text-amber-100 mb-2 uppercase tracking-wide">
+              Opponent Forfeited
+            </h2>
+
+            <p className="text-xs sm:text-sm font-brand text-stone-300 mb-6 max-w-sm mx-auto leading-relaxed">
+              Your opponent has disconnected or surrendered the match.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsForfeitModalOpen(false);
+                resetGame();
+              }}
+              className="w-full py-3.5 px-4 rounded-xl font-brand font-bold text-sm bg-amber-600 hover:bg-amber-500 text-stone-950 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>Back to Game</span>
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
