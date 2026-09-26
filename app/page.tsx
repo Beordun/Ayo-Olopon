@@ -481,23 +481,23 @@ export default function AyoPage() {
       )}
 
       {/* 2. Turn Telemetry Banner */}
-      <div className="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl bg-black/30 border border-amber-950/40 mb-4">
-        <div className="flex items-center gap-3">
+      <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 px-3.5 sm:px-4 py-2.5 rounded-2xl bg-black/30 border border-amber-950/40 mb-4">
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
           <div
-            className={`w-3 h-3 rounded-full ${
-              gameState.currentTurn === 'south' ? 'bg-amber-400' : 'bg-stone-600'
+            className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shrink-0 ${
+              gameState.currentTurn === 'south' ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]' : 'bg-stone-600'
             }`}
           />
-          <span className="text-xs sm:text-sm font-bold tracking-wide text-stone-200 flex items-center gap-2">
-            <span>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold tracking-wide text-stone-200">
+            <span className="break-words">
               Active Turn:{' '}
-              <strong className="text-amber-300 uppercase">
+              <strong className="text-amber-300 uppercase font-extrabold">
                 {gameState.currentTurn === 'south' ? southPlayerName : northPlayerName}
               </strong>
             </span>
             {gameMode === 'multiplayer' && (
               <span
-                className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold border ${
+                className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] uppercase font-bold tracking-wider border whitespace-nowrap shrink-0 ${
                   isMyTurnInMultiplayer
                     ? 'bg-amber-600 text-stone-950 border-amber-500'
                     : 'bg-stone-900 text-stone-400 border-stone-800'
@@ -506,13 +506,13 @@ export default function AyoPage() {
                 {isMyTurnInMultiplayer ? 'Your Turn' : "Opponent's Turn"}
               </span>
             )}
-          </span>
+          </div>
         </div>
 
         {/* Captured Lead Summary */}
-        <div className="text-xs font-semibold text-stone-400">
-          Remaining Seeds on Board:{' '}
-          <span className="text-amber-200 font-bold">
+        <div className="text-[11px] sm:text-xs font-semibold text-stone-400 flex items-center justify-between sm:justify-end gap-1.5 pt-1.5 sm:pt-0 border-t border-amber-950/20 sm:border-t-0">
+          <span>Remaining Seeds on Board:</span>
+          <span className="text-amber-200 font-bold bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-900/30">
             {gameState.board.reduce((a, b) => a + b, 0)}
           </span>
         </div>
