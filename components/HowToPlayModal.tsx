@@ -114,10 +114,10 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
         </div>
 
         {/* Footer */}
-        <div className="mt-7 pt-4 border-t border-amber-950/60 flex justify-end">
+        <div className="mt-7 pt-4 border-t border-amber-950/60 flex justify-center">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 rounded-xl font-brand font-bold text-sm bg-amber-600 hover:bg-amber-500 text-stone-950 transition-colors cursor-pointer flex items-center gap-2"
+            className="px-8 py-3 rounded-xl font-brand font-bold text-sm bg-amber-600 hover:bg-amber-500 text-stone-950 transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-[0_2px_12px_rgba(217,119,6,0.3)]"
           >
             <Check className="w-4 h-4" />
             <span>I Understand</span>
