@@ -39,44 +39,56 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
   const displayNorthName = northPlayerName.replace(/grandmaster/i, '').trim() || 'AI';
   const displaySouthName = southPlayerName;
 
-  // Visual animation effect when lastMove changes — reduced speed for deliberate tactile seed drops
+  // Visual animation effect when lastMove changes — deliberate tactile seed drops with anti-freeze safety
   useEffect(() => {
-    if (gameState.lastMove?.sownPits && gameState.lastMove.sownPits.length > 0) {
-      const path = gameState.lastMove.sownPits;
-      // Reduced sowing speed: 280ms per consecutive hollow allows each seed to be clearly seen & heard
-      const DROP_INTERVAL = 280;
-      const PULSE_DURATION = 220;
-
-      setIsSowing(true);
-      const timers: NodeJS.Timeout[] = [];
-
-      path.forEach((pit, idx) => {
-        const timer = setTimeout(() => {
-          setAnimatingPit(pit);
-          sound.playSeedClick(1 + (idx % 4) * 0.08);
-          setTimeout(() => setAnimatingPit(null), PULSE_DURATION);
-        }, idx * DROP_INTERVAL);
-        timers.push(timer);
-      });
-
-      if (gameState.lastMove.capturedSeeds > 0) {
-        const captureTimer = setTimeout(() => {
-          sound.playCapture();
-        }, path.length * DROP_INTERVAL + 120);
-        timers.push(captureTimer);
-      }
-
-      const finishTimer = setTimeout(() => {
-        setIsSowing(false);
-      }, path.length * DROP_INTERVAL + 250);
-      timers.push(finishTimer);
-
-      return () => {
-        timers.forEach(clearTimeout);
-        setAnimatingPit(null);
-        setIsSowing(false);
-      };
+    if (!gameState.lastMove?.sownPits || gameState.lastMove.sownPits.length === 0) {
+      setIsSowing(false);
+      setAnimatingPit(null);
+      return;
     }
+
+    const path = gameState.lastMove.sownPits;
+    const DROP_INTERVAL = 200;
+    const PULSE_DURATION = 160;
+
+    setIsSowing(true);
+    const timers: NodeJS.Timeout[] = [];
+
+    path.forEach((pit, idx) => {
+      const timer = setTimeout(() => {
+        setAnimatingPit(pit);
+        sound.playSeedClick(1 + (idx % 4) * 0.08);
+        setTimeout(() => setAnimatingPit(null), PULSE_DURATION);
+      }, idx * DROP_INTERVAL);
+      timers.push(timer);
+    });
+
+    if (gameState.lastMove.capturedSeeds > 0) {
+      const captureTimer = setTimeout(() => {
+        sound.playCapture();
+      }, path.length * DROP_INTERVAL + 100);
+      timers.push(captureTimer);
+    }
+
+    const totalDuration = path.length * DROP_INTERVAL + 200;
+    const finishTimer = setTimeout(() => {
+      setIsSowing(false);
+      setAnimatingPit(null);
+    }, totalDuration);
+    timers.push(finishTimer);
+
+    // Hard safety timer: Guarantee isSowing NEVER stays true past duration
+    const safetyTimer = setTimeout(() => {
+      setIsSowing(false);
+      setAnimatingPit(null);
+    }, totalDuration + 300);
+    timers.push(safetyTimer);
+
+    return () => {
+      timers.forEach(clearTimeout);
+      setAnimatingPit(null);
+      setIsSowing(false);
+    };
   }, [gameState.lastMove]);
 
   const handlePitInteraction = (pitIndex: number) => {

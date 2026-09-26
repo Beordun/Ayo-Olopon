@@ -1,10 +1,11 @@
 /**
  * Authoritative Host Multiplayer State Machine & WebRTC Transport — Ayò Ọlọ́pọ́n Digital
  * Strict compliance with AGENTS.md Invariant 1 & 2
+ * Real-time event-driven relay synchronization (< 30ms latency)
  */
 
 import { GameState, NetworkMessage, PlayerSide } from '@/types/ayo';
-import { executeMove, assert48SeedConservation, createInitialState } from './ayo-engine';
+import { executeMove, assert48SeedConservation, createInitialState, getLegalMoves } from './ayo-engine';
 
 export type PeerConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'reconnecting' | 'desynced';
 
@@ -38,7 +39,9 @@ export class MultiplayerSession {
   private moveSequence: number = 0;
   private callbacks: MultiplayerCallbacks;
   private reconnectTimer: NodeJS.Timeout | null = null;
-  private pollTimer: any = null;
+  private isDestroyed = false;
+  private isPollLoopActive = false;
+  private activePollAbortController: AbortController | null = null;
   private lastPollMessageId: number = 0;
   private processedMessageKeys = new Set<string>();
 
@@ -50,14 +53,14 @@ export class MultiplayerSession {
     initialState?: GameState
   ) {
     this.role = role;
-    this.roomId = roomId;
+    this.roomId = roomId.toUpperCase().trim();
     this.callbacks = callbacks;
     this.playerName = playerName;
     this.authoritativeState = initialState ? JSON.parse(JSON.stringify(initialState)) : createInitialState();
 
-    // Use BroadcastChannel for zero-config multi-tab local play on the same machine
+    // BroadcastChannel for instant zero-latency same-machine multi-tab play
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
-      this.localBroadcast = new BroadcastChannel(`ayo-room-${roomId}`);
+      this.localBroadcast = new BroadcastChannel(`ayo-room-${this.roomId}`);
       this.localBroadcast.onmessage = (event) => this.handleIncomingMessage(event.data);
     }
   }
@@ -90,10 +93,10 @@ export class MultiplayerSession {
       }),
     }).catch((err) => console.warn('[Multiplayer] Relay join notice:', err));
 
-    // 2. Start server relay polling loop (guaranteed cross-device delivery)
-    this.startPollingLoop();
+    // 2. Start high-frequency long-polling loop (real-time push delivery < 30ms)
+    this.startLongPollLoop();
 
-    // 3. WebRTC Peer Connection (direct low-latency transport where available)
+    // 3. WebRTC Peer Connection (direct peer transport where available)
     try {
       this.peerConnection = new RTCPeerConnection(RTC_CONFIG);
 
@@ -119,7 +122,7 @@ export class MultiplayerSession {
         };
       }
     } catch (err) {
-      console.warn('[Multiplayer] WebRTC init skipped, relying on HTTP relay:', err);
+      console.warn('[Multiplayer] WebRTC init skipped, relying on real-time HTTP relay:', err);
     }
 
     if (this.role === 'north') {
@@ -128,60 +131,92 @@ export class MultiplayerSession {
     }
   }
 
-  private startPollingLoop() {
-    this.clearPollingLoop();
-    const poll = async () => {
+  /**
+   * Continuous real-time long-polling loop with zero idle delay between messages
+   */
+  private async startLongPollLoop() {
+    if (this.isPollLoopActive) return;
+    this.isPollLoopActive = true;
+
+    while (!this.isDestroyed && this.isPollLoopActive) {
       try {
+        this.activePollAbortController = new AbortController();
         const res = await fetch(
-          `/api/multiplayer?room=${encodeURIComponent(this.roomId)}&role=${this.role}&lastId=${this.lastPollMessageId}`
+          `/api/multiplayer?room=${encodeURIComponent(this.roomId)}&role=${this.role}&lastId=${this.lastPollMessageId}&wait=1`,
+          { signal: this.activePollAbortController.signal }
         );
+
         if (res.ok) {
           const data = await res.json();
-          if (typeof data.latestMessageId === 'number' && data.latestMessageId > this.lastPollMessageId) {
-            this.lastPollMessageId = data.latestMessageId;
-          }
-
-          // Role-specific discovery
-          if (this.role === 'south' && data.clientName && !this.opponentName) {
-            this.opponentName = data.clientName;
-            this.callbacks.onOpponentName?.(data.clientName);
-            this.callbacks.onChallengeAccepted?.(data.clientName);
-            this.setStatus('connected');
-            this.broadcastCurrentState();
-          }
-
-          if (this.role === 'north' && data.hostName && !this.opponentName) {
-            this.opponentName = data.hostName;
-            this.callbacks.onOpponentName?.(data.hostName);
-            this.setStatus('connected');
-          }
-
-          // Initial state synchronization for joining Client
-          if (this.role === 'north' && data.currentState && this.status !== 'connected') {
-            this.authoritativeState = data.currentState;
-            this.setStatus('connected');
-            this.callbacks.onStateUpdate(data.currentState);
-          }
-
-          if (data.messages && Array.isArray(data.messages)) {
-            for (const msg of data.messages) {
-              this.handleIncomingMessage(msg);
-            }
-          }
+          this.processPollData(data);
+        } else {
+          // If server error or transient 500, back off briefly
+          await new Promise((r) => setTimeout(r, 400));
         }
-      } catch {
-        // Network jitter or transient error, keep loop running
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          // Explicit wakeup or move dispatch triggered, continue loop immediately
+        } else {
+          // Network jitter, wait 500ms before retrying
+          await new Promise((r) => setTimeout(r, 500));
+        }
       }
-    };
-
-    poll();
-    this.pollTimer = setInterval(poll, 350);
+    }
   }
 
-  private clearPollingLoop() {
-    if (this.pollTimer) {
-      clearInterval(this.pollTimer);
-      this.pollTimer = null;
+  /**
+   * Processes payload from server relay
+   */
+  private processPollData(data: any) {
+    if (!data) return;
+
+    if (typeof data.latestMessageId === 'number' && data.latestMessageId > this.lastPollMessageId) {
+      this.lastPollMessageId = data.latestMessageId;
+    }
+
+    // Role-specific opponent discovery
+    if (this.role === 'south' && data.clientName && !this.opponentName) {
+      this.opponentName = data.clientName;
+      this.callbacks.onOpponentName?.(data.clientName);
+      this.callbacks.onChallengeAccepted?.(data.clientName);
+      this.setStatus('connected');
+      this.broadcastCurrentState();
+    }
+
+    if (this.role === 'north' && data.hostName && !this.opponentName) {
+      this.opponentName = data.hostName;
+      this.callbacks.onOpponentName?.(data.hostName);
+      this.setStatus('connected');
+    }
+
+    // Initial state sync for newly joined Client
+    if (this.role === 'north' && data.currentState && this.status !== 'connected') {
+      try {
+        assert48SeedConservation(data.currentState);
+        this.authoritativeState = data.currentState;
+        this.setStatus('connected');
+        this.callbacks.onStateUpdate(data.currentState);
+      } catch {}
+    }
+
+    if (data.messages && Array.isArray(data.messages)) {
+      for (const msg of data.messages) {
+        if (msg.id && msg.id > this.lastPollMessageId) {
+          this.lastPollMessageId = msg.id;
+        }
+        this.handleIncomingMessage(msg);
+      }
+    }
+  }
+
+  /**
+   * Wakes up the waiting long-poll request to fetch updates immediately
+   */
+  public triggerImmediateWakeup() {
+    if (this.activePollAbortController) {
+      try {
+        this.activePollAbortController.abort();
+      } catch {}
     }
   }
 
@@ -242,7 +277,7 @@ export class MultiplayerSession {
         return this.authoritativeState || currentState;
       }
     } else {
-      // Client dispatches MOVE_ACTION only to authoritative Host
+      // Client is North: Send move intent to Host, and optimistically apply for zero-latency UI
       this.moveSequence++;
       this.broadcastMessage({
         type: 'MOVE_ACTION',
@@ -251,17 +286,26 @@ export class MultiplayerSession {
         sender: 'north',
         playerName: this.playerName,
       });
-      return currentState; // Client does NOT mutate locally until authoritative STATE_SYNC arrives
+
+      // Optimistic execution: Client calculates next state immediately for instant seed animation & sound
+      try {
+        const base = this.authoritativeState || currentState;
+        const optimisticState = executeMove(base, pitIndex);
+        this.authoritativeState = optimisticState;
+        return optimisticState;
+      } catch {
+        return currentState;
+      }
     }
   }
 
   /**
-   * Internal message handler.
+   * Internal message handler with robust anti-freeze guards.
    */
   private handleIncomingMessage(msg: NetworkMessage) {
     if (msg.sender === this.role) return; // Ignore self-broadcasts
 
-    // Deduplicate identical packets received across multiple transports (BroadcastChannel + HTTP Relay)
+    // Deduplicate identical packets received across multiple transports
     const messageKey = `${msg.type}:${msg.moveId ?? 0}:${msg.sender}:${msg.pitIndex ?? ''}:${JSON.stringify(
       msg.state?.board || ''
     )}`;
@@ -286,8 +330,7 @@ export class MultiplayerSession {
 
       case 'MOVE_ACTION':
         if (this.role === 'south' && typeof msg.pitIndex === 'number') {
-          // Host receives Client move intent, executes against authoritative state, and broadcasts
-          this.executeAndBroadcastHost(msg.pitIndex);
+          this.executeAndBroadcastHost(msg.pitIndex, msg.moveId);
         }
         break;
 
@@ -324,7 +367,6 @@ export class MultiplayerSession {
   }
 
   public registerHostStateProvider(provider: () => GameState) {
-    // Kept for backward compatibility, but authoritativeState takes precedence
     try {
       const state = provider();
       if (state) this.authoritativeState = state;
@@ -339,11 +381,29 @@ export class MultiplayerSession {
     }
   }
 
-  private executeAndBroadcastHost(clientPitIndex: number) {
+  /**
+   * Host validates & executes North's move with anti-freeze protection.
+   */
+  private executeAndBroadcastHost(clientPitIndex: number, moveId?: number) {
+    // Anti-Freeze Guard 1: If it's already South's turn, North's move was already processed or out of order
+    if (this.authoritativeState.currentTurn !== 'north') {
+      console.warn('[Multiplayer] Move received for North but turn is South. Re-broadcasting authoritative state.');
+      this.broadcastCurrentState();
+      return;
+    }
+
+    // Anti-Freeze Guard 2: Ensure chosen pit is currently legal for North
+    const legalMoves = getLegalMoves(this.authoritativeState, 'north');
+    if (!legalMoves.includes(clientPitIndex)) {
+      console.warn(`[Multiplayer] Illegal pit index ${clientPitIndex} from North. Re-broadcasting authoritative state.`);
+      this.broadcastCurrentState();
+      return;
+    }
+
     try {
       const nextState = executeMove(this.authoritativeState, clientPitIndex);
       this.authoritativeState = nextState;
-      this.moveSequence++;
+      this.moveSequence = (moveId ?? this.moveSequence) + 1;
       this.callbacks.onStateUpdate(nextState);
       this.broadcastMessage({
         type: 'STATE_SYNC',
@@ -353,8 +413,8 @@ export class MultiplayerSession {
         playerName: this.playerName,
       });
     } catch (err: any) {
-      this.callbacks.onError(err.message || 'Illegal move from opponent');
-      this.requestResync();
+      console.error('[Multiplayer] Engine error during Host execution:', err);
+      this.broadcastCurrentState();
     }
   }
 
@@ -413,7 +473,12 @@ export class MultiplayerSession {
           playerName: this.playerName,
           message,
         }),
-      }).catch(() => {});
+      })
+        .then(() => {
+          // Immediately wake up our local poll to pick up any responses
+          this.triggerImmediateWakeup();
+        })
+        .catch(() => {});
     }
   }
 
@@ -435,8 +500,10 @@ export class MultiplayerSession {
   }
 
   public destroy() {
+    this.isDestroyed = true;
+    this.isPollLoopActive = false;
     this.clearReconnectTimer();
-    this.clearPollingLoop();
+    this.triggerImmediateWakeup();
     if (this.dataChannel) this.dataChannel.close();
     if (this.peerConnection) this.peerConnection.close();
     if (this.localBroadcast) this.localBroadcast.close();

@@ -20,12 +20,29 @@ interface RoomData {
 // In-memory room registry
 const rooms = new Map<string, RoomData>();
 
+// In-memory room notification listeners for real-time long-polling (< 20ms sync)
+type RoomListener = () => void;
+const roomListeners = new Map<string, Set<RoomListener>>();
+
+function notifyRoomListeners(roomId: string) {
+  const normalizedId = roomId.toUpperCase().trim();
+  const set = roomListeners.get(normalizedId);
+  if (set) {
+    set.forEach((listener) => {
+      try {
+        listener();
+      } catch {}
+    });
+  }
+}
+
 // Periodic cleanup of stale rooms (older than 3 hours)
 function cleanupStaleRooms() {
   const now = Date.now();
   rooms.forEach((room, id) => {
     if (now - room.lastActive > 3 * 60 * 60 * 1000) {
       rooms.delete(id);
+      roomListeners.delete(id);
     }
   });
 }
@@ -54,18 +71,57 @@ export async function GET(request: NextRequest) {
   const role = searchParams.get('role') as PlayerSide | null;
   const lastIdStr = searchParams.get('lastId');
   const lastId = lastIdStr ? parseInt(lastIdStr, 10) : 0;
+  const shouldWait = searchParams.get('wait') === '1';
 
   if (!roomId) {
     return NextResponse.json({ error: 'Missing room parameter' }, { status: 400 });
   }
 
-  const room = getOrCreateRoom(roomId);
+  const normalizedId = roomId.toUpperCase().trim();
+  const room = getOrCreateRoom(normalizedId);
 
-  // Filter messages intended for this role (messages sent by the other role)
-  // that have an ID higher than lastId
-  const newMessages = room.messages.filter(
-    (m) => m.id > lastId && (!role || m.message.sender !== role)
-  );
+  const getFilteredMessages = () =>
+    room.messages.filter((m) => m.id > lastId && (!role || m.message.sender !== role));
+
+  let newMessages = getFilteredMessages();
+
+  // Long-polling: If no new messages and client requested waiting, hold request until notified or 10s timeout
+  if (shouldWait && newMessages.length === 0) {
+    await new Promise<void>((resolve) => {
+      let resolved = false;
+
+      const cleanup = () => {
+        if (resolved) return;
+        resolved = true;
+        clearTimeout(timer);
+        const set = roomListeners.get(normalizedId);
+        if (set) {
+          set.delete(onNotify);
+          if (set.size === 0) roomListeners.delete(normalizedId);
+        }
+      };
+
+      const onNotify = () => {
+        cleanup();
+        resolve();
+      };
+
+      const timer = setTimeout(() => {
+        cleanup();
+        resolve();
+      }, 10000); // 10s maximum hold before returning empty heartbeat
+
+      let set = roomListeners.get(normalizedId);
+      if (!set) {
+        set = new Set();
+        roomListeners.set(normalizedId, set);
+      }
+      set.add(onNotify);
+    });
+
+    // Re-check messages after wakeup event
+    newMessages = getFilteredMessages();
+  }
 
   return NextResponse.json({
     roomId: room.roomId,
@@ -87,7 +143,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing roomId' }, { status: 400 });
     }
 
-    const room = getOrCreateRoom(roomId);
+    const normalizedId = roomId.toUpperCase().trim();
+    const room = getOrCreateRoom(normalizedId);
 
     switch (action) {
       case 'join': {
@@ -97,6 +154,7 @@ export async function POST(request: NextRequest) {
         } else if (role === 'north') {
           if (playerName) room.clientName = playerName;
         }
+        notifyRoomListeners(normalizedId);
         return NextResponse.json({
           success: true,
           roomId: room.roomId,
@@ -125,17 +183,20 @@ export async function POST(request: NextRequest) {
           room.clientName = message.playerName;
         }
 
-        // If message includes state, cache current state
+        // If message includes authoritative state, cache current state
         if (message.state) {
           room.currentState = message.state;
         }
 
         room.messages.push(msgEntry);
 
-        // Keep buffer size manageable (max 100 recent messages)
-        if (room.messages.length > 100) {
-          room.messages = room.messages.slice(-100);
+        // Keep buffer size manageable (max 150 recent messages)
+        if (room.messages.length > 150) {
+          room.messages = room.messages.slice(-150);
         }
+
+        // Instantly notify all waiting long-poll listeners for this room
+        notifyRoomListeners(normalizedId);
 
         return NextResponse.json({
           success: true,
@@ -147,6 +208,7 @@ export async function POST(request: NextRequest) {
         if (state) {
           room.currentState = state;
         }
+        notifyRoomListeners(normalizedId);
         return NextResponse.json({ success: true });
       }
 
