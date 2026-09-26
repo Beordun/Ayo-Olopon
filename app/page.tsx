@@ -50,6 +50,11 @@ export default function AyoPage() {
   const [opponentPlayerName, setOpponentPlayerName] = useState<string | null>(null);
   const [matchNotification, setMatchNotification] = useState<string | null>(null);
   const multiplayerSessionRef = useRef<MultiplayerSession | null>(null);
+  const gameStateRef = useRef<GameState>(gameState);
+
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
 
   // Load saved profile on initial mount and check URL invitation params
   useEffect(() => {
@@ -82,20 +87,33 @@ export default function AyoPage() {
     }
   }, []);
 
-  // Dynamic Player Names
-  const southPlayerName = userProfile?.name?.trim() || 'Player 1';
+  // Dynamic Player Names according to perspective & mode
+  // In Ayò Ọlọ́pọ́n, South is Player 1 (Bottom row [0..5]), North is Player 2 (Top row [11..6])
+  // Host is always South; Client is always North.
+  const myName = userProfile?.name?.trim() || (isHost ? 'Player 1' : 'Player 2');
+  const opponentName =
+    opponentPlayerName ||
+    (isHost ? 'Opponent' : challengerName || 'Host');
+
+  const southPlayerName =
+    gameMode === 'multiplayer'
+      ? isHost
+        ? myName
+        : opponentName
+      : gameMode === 'ai'
+      ? myName
+      : 'Player 1';
+
   const northPlayerName =
     gameMode === 'ai'
       ? 'AI'
       : gameMode === 'local'
       ? 'Player 2'
-      : opponentPlayerName
-      ? opponentPlayerName
-      : challengerName && !isHost
-      ? challengerName
-      : isHost
-      ? 'Opponent'
-      : 'Challenger';
+      : gameMode === 'multiplayer'
+      ? isHost
+        ? opponentName
+        : myName
+      : 'Player 2';
 
   // Sound Mute Toggle
   const toggleSound = () => {
@@ -118,8 +136,19 @@ export default function AyoPage() {
     }
   }, [gameState.isGameOver, gameState.winner]);
 
-  // Compute legal moves for active player
-  const legalMoves = getLegalMoves(gameState, gameState.currentTurn);
+  // Active player turn check in multiplayer
+  const isMyTurnInMultiplayer =
+    gameMode === 'multiplayer' &&
+    ((isHost && gameState.currentTurn === 'south') || (!isHost && gameState.currentTurn === 'north'));
+
+  // Compute legal moves for active player, ensuring in multiplayer players only interact on their turn & side
+  const rawLegalMoves = getLegalMoves(gameState, gameState.currentTurn);
+  const legalMoves =
+    gameMode === 'multiplayer'
+      ? isMyTurnInMultiplayer
+        ? rawLegalMoves
+        : []
+      : rawLegalMoves;
 
   // Reset Game to Canonical Initial State
   const resetGame = () => {
@@ -203,14 +232,18 @@ export default function AyoPage() {
 
     if (gameMode === 'multiplayer' && multiplayerSessionRef.current) {
       // In multiplayer, delegate through session coordinator
-      const nextState = multiplayerSessionRef.current.handlePlayerMove(gameState, pitIndex);
+      const currentState = gameStateRef.current || gameState;
+      const nextState = multiplayerSessionRef.current.handlePlayerMove(currentState, pitIndex);
       setGameState(nextState);
+      gameStateRef.current = nextState;
       return;
     }
 
     try {
-      const nextState = executeMove(gameState, pitIndex);
+      const currentState = gameStateRef.current || gameState;
+      const nextState = executeMove(currentState, pitIndex);
       setGameState(nextState);
+      gameStateRef.current = nextState;
     } catch (err: any) {
       console.warn('Move rejected:', err.message);
     }
@@ -228,7 +261,10 @@ export default function AyoPage() {
       asHost ? 'south' : 'north',
       room,
       {
-        onStateUpdate: (newState) => setGameState(newState),
+        onStateUpdate: (newState) => {
+          setGameState(newState);
+          gameStateRef.current = newState;
+        },
         onStatusChange: (status) => setMultiplayerStatus(status),
         onError: (msg) => console.warn(`Multiplayer: ${msg}`),
         onOpponentForfeit: () => {
@@ -247,10 +283,14 @@ export default function AyoPage() {
 
           const freshState = createInitialState();
           setGameState(freshState);
+          gameStateRef.current = freshState;
+          if (multiplayerSessionRef.current) {
+            multiplayerSessionRef.current.resetHostState(freshState);
+          }
 
           sound.playScoop();
           const nameToShow = acceptedOpponentName || 'Opponent';
-          setMatchNotification(`${nameToShow} accepted your challenge! Game started — your turn (South).`);
+          setMatchNotification(`${nameToShow} joined the room! Match started — your turn (South).`);
           setTimeout(() => setMatchNotification(null), 6000);
         },
         onOpponentName: (name) => {
@@ -259,10 +299,11 @@ export default function AyoPage() {
           }
         },
       },
-      effectivePlayerName
+      effectivePlayerName,
+      gameStateRef.current
     );
 
-    session.registerHostStateProvider(() => gameState);
+    session.registerHostStateProvider(() => gameStateRef.current);
     session.initConnection();
     multiplayerSessionRef.current = session;
     setRoomId(room);
@@ -314,7 +355,7 @@ export default function AyoPage() {
       <header className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 py-2 border-b border-amber-950/40 mb-4 sm:mb-6">
         {/* Cultural Brand Title & Player Profile Badge */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-ayo-chassis border border-ayo-bevel flex items-center justify-center shadow-lg">
+          <div className="w-10 h-10 rounded-2xl bg-ayo-chassis border-2 border-amber-900/60 flex items-center justify-center">
             <Disc className="w-5 h-5 text-amber-400" />
           </div>
           <div>
@@ -335,7 +376,7 @@ export default function AyoPage() {
         </div>
 
         {/* Mode Switcher Tabs */}
-        <div className="flex items-center bg-black/40 p-1.5 rounded-2xl border border-amber-950/60 shadow-inner">
+        <div className="flex items-center bg-black/40 p-1.5 rounded-2xl border border-amber-950/60">
           <button
             onClick={() => {
               setGameMode('ai');
@@ -343,7 +384,7 @@ export default function AyoPage() {
             }}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               gameMode === 'ai'
-                ? 'bg-ayo-bevel text-amber-100 shadow-md'
+                ? 'bg-amber-900/80 text-amber-100 border border-amber-600/40'
                 : 'text-stone-400 hover:text-amber-200'
             }`}
           >
@@ -358,7 +399,7 @@ export default function AyoPage() {
             }}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               gameMode === 'local'
-                ? 'bg-ayo-bevel text-amber-100 shadow-md'
+                ? 'bg-amber-900/80 text-amber-100 border border-amber-600/40'
                 : 'text-stone-400 hover:text-amber-200'
             }`}
           >
@@ -376,7 +417,7 @@ export default function AyoPage() {
             }}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               gameMode === 'multiplayer'
-                ? 'bg-ayo-bevel text-amber-100 shadow-md'
+                ? 'bg-amber-900/80 text-amber-100 border border-amber-600/40'
                 : 'text-stone-400 hover:text-amber-200'
             }`}
           >
@@ -390,7 +431,7 @@ export default function AyoPage() {
           <button
             onClick={resetGame}
             title="Reset Board (New Game)"
-            className="p-2.5 rounded-xl bg-ayo-surfaceContainer border border-amber-950/60 text-stone-300 hover:text-amber-300 hover:border-amber-800/60 transition-all shadow-md cursor-pointer"
+            className="p-2.5 rounded-xl bg-ayo-surfaceContainer border border-amber-950/60 text-stone-300 hover:text-amber-300 hover:border-amber-800/60 transition-all cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -398,14 +439,14 @@ export default function AyoPage() {
           <button
             onClick={toggleSound}
             title={isMuted ? 'Unmute Sound' : 'Mute Sound'}
-            className="p-2.5 rounded-xl bg-ayo-surfaceContainer border border-amber-950/60 text-stone-300 hover:text-amber-300 hover:border-amber-800/60 transition-all shadow-md cursor-pointer"
+            className="p-2.5 rounded-xl bg-ayo-surfaceContainer border border-amber-950/60 text-stone-300 hover:text-amber-300 hover:border-amber-800/60 transition-all cursor-pointer"
           >
             {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4" />}
           </button>
 
           <button
             onClick={() => setIsHowToPlayOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-950/40 border border-amber-800/40 text-amber-200 text-xs font-bold hover:bg-amber-900/50 transition-all shadow-md cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-950/40 border border-amber-800/40 text-amber-200 text-xs font-bold hover:bg-amber-900/50 transition-all cursor-pointer"
           >
             <HelpCircle className="w-4 h-4 text-amber-400" />
             <span>Rules</span>
@@ -415,7 +456,7 @@ export default function AyoPage() {
           <button
             onClick={exitToLanding}
             title="Exit to Welcome Page"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-black/40 border border-amber-950/60 text-stone-400 hover:text-red-300 hover:border-red-900/40 transition-all text-xs font-bold shadow-md cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-black/40 border border-amber-950/60 text-stone-400 hover:text-red-300 hover:border-red-900/40 transition-all text-xs font-bold cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
             <span className="hidden sm:inline">Exit</span>
@@ -425,9 +466,9 @@ export default function AyoPage() {
 
       {/* Realtime Match Notification Banner */}
       {matchNotification && (
-        <div className="w-full mb-4 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/90 via-emerald-900/80 to-emerald-950/90 border-2 border-emerald-500/80 text-emerald-200 text-xs sm:text-sm font-bold flex items-center justify-between shadow-xl animate-fadeIn">
+        <div className="w-full mb-4 p-3.5 rounded-2xl bg-emerald-950/90 border-2 border-emerald-600/80 text-emerald-200 text-xs sm:text-sm font-bold flex items-center justify-between animate-fadeIn">
           <div className="flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
             <span>{matchNotification}</span>
           </div>
           <button
@@ -444,14 +485,27 @@ export default function AyoPage() {
         <div className="flex items-center gap-3">
           <div
             className={`w-3 h-3 rounded-full ${
-              gameState.currentTurn === 'south' ? 'bg-amber-400 animate-pulse' : 'bg-stone-600'
+              gameState.currentTurn === 'south' ? 'bg-amber-400' : 'bg-stone-600'
             }`}
           />
-          <span className="text-xs sm:text-sm font-bold tracking-wide text-stone-200">
-            Active Turn:{' '}
-            <strong className="text-amber-300 uppercase">
-              {gameState.currentTurn === 'south' ? southPlayerName : northPlayerName}
-            </strong>
+          <span className="text-xs sm:text-sm font-bold tracking-wide text-stone-200 flex items-center gap-2">
+            <span>
+              Active Turn:{' '}
+              <strong className="text-amber-300 uppercase">
+                {gameState.currentTurn === 'south' ? southPlayerName : northPlayerName}
+              </strong>
+            </span>
+            {gameMode === 'multiplayer' && (
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold border ${
+                  isMyTurnInMultiplayer
+                    ? 'bg-amber-600 text-stone-950 border-amber-500'
+                    : 'bg-stone-900 text-stone-400 border-stone-800'
+                }`}
+              >
+                {isMyTurnInMultiplayer ? 'Your Turn' : "Opponent's Turn"}
+              </span>
+            )}
           </span>
         </div>
 
@@ -488,14 +542,8 @@ export default function AyoPage() {
       {/* 5. Terminal Victory / Draw Modal with Sequence: New Game & Exit */}
       {gameState.isGameOver && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
-          <div
-            className="w-full max-w-md rounded-3xl p-8 border-4 border-ayo-bevel text-center relative overflow-hidden"
-            style={{
-              background: 'linear-gradient(145deg, #23120B 0%, #140905 100%)',
-              boxShadow: '0 24px 60px rgba(0,0,0,0.95)',
-            }}
-          >
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-amber-950/60 border border-amber-700/50 flex items-center justify-center shadow-lg">
+          <div className="w-full max-w-md rounded-3xl p-8 border-4 border-ayo-bevel text-center relative overflow-hidden bg-[#1E0F08]">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-amber-950/60 border border-amber-700/50 flex items-center justify-center">
               <Trophy className="w-8 h-8 text-amber-300" />
             </div>
 
@@ -516,7 +564,7 @@ export default function AyoPage() {
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
               <button
                 onClick={resetGame}
-                className="w-full sm:flex-1 py-3.5 px-4 rounded-xl font-brand font-bold text-sm bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-500 text-stone-950 transition-all duration-200 shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full sm:flex-1 py-3.5 px-4 rounded-xl font-brand font-bold text-sm bg-amber-600 hover:bg-amber-500 text-stone-950 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>New Game</span>
@@ -524,7 +572,7 @@ export default function AyoPage() {
 
               <button
                 onClick={exitToLanding}
-                className="w-full sm:w-auto py-3.5 px-6 rounded-xl font-brand font-bold text-sm bg-black/60 border border-amber-900/60 text-stone-300 hover:text-red-300 hover:border-red-900/60 hover:bg-red-950/20 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto py-3.5 px-6 rounded-xl font-brand font-bold text-sm bg-black/60 border border-amber-900/60 text-stone-300 hover:text-red-300 hover:border-red-900/60 hover:bg-red-950/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Exit</span>

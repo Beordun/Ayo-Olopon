@@ -83,21 +83,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     <div className="w-full max-w-2xl mx-auto my-auto py-6 px-4 sm:px-6 select-none animate-fadeIn">
       {/* Wooden Carved Welcome Container */}
       <div
-        className="relative rounded-[32px] sm:rounded-[40px] p-6 sm:p-8 md:p-10 border-4 border-ayo-bevel/80 overflow-hidden"
-        style={{
-          background: 'linear-gradient(145deg, #351A0E 0%, #23120B 55%, #140905 100%)',
-          boxShadow: '0 25px 60px rgba(0,0,0,0.95), inset 0 2px 4px #7A4222',
-        }}
+        className="relative rounded-[32px] sm:rounded-[40px] p-6 sm:p-8 md:p-10 border-4 border-amber-900/70 bg-[#23120B] overflow-hidden"
       >
         {/* Subtle decorative inner border */}
         <div className="absolute inset-2 sm:inset-3 rounded-[26px] sm:rounded-[34px] border border-amber-800/20 pointer-events-none" />
 
-        {/* Ambient Warm Amber Glow */}
-        <div className="absolute top-0 right-1/4 w-48 h-48 bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
-
         {/* Brand Header with Lucide Disc Icon */}
         <div className="text-center relative z-10 mb-6 sm:mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-ayo-chassis border-2 border-ayo-bevel shadow-xl mb-3">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-ayo-chassis border-2 border-amber-900/70 mb-3">
             <Disc className="w-8 h-8 text-amber-400" />
           </div>
 
@@ -114,7 +107,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
         {/* Multiplayer Challenge Invitation Banner (If accessed via challenge link) */}
         {challengerName && challengeRoom && (
-          <div className="relative z-10 mb-6 p-4 rounded-2xl bg-gradient-to-r from-amber-950/70 via-amber-900/50 to-amber-950/70 border-2 border-amber-600/60 shadow-lg text-center animate-pulse">
+          <div className="relative z-10 mb-6 p-4 rounded-2xl bg-amber-950/80 border-2 border-amber-700/60 text-center">
             <div className="flex items-center justify-center gap-2 text-amber-300 font-bold font-brand text-sm sm:text-base">
               <Swords className="w-5 h-5 text-amber-400" />
               <span>
@@ -148,7 +141,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 }}
                 maxLength={20}
                 placeholder="Enter your name (e.g. Adekunle, Amara, or Jordan)"
-                className="w-full pl-10 pr-4 py-3 sm:py-3.5 rounded-xl bg-black/60 border border-amber-900/60 text-amber-100 placeholder-stone-500 font-brand text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-700 transition-all shadow-inner"
+                className="w-full pl-10 pr-4 py-3 sm:py-3.5 rounded-xl bg-black/60 border border-amber-900/60 text-amber-100 placeholder-stone-500 font-brand text-sm sm:text-base focus:outline-none focus:border-amber-600 transition-all"
               />
             </div>
             {error && (
@@ -175,7 +168,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                   onClick={() => setGender(item.id as any)}
                   className={`py-3 px-2 rounded-xl border text-center transition-all cursor-pointer ${
                     gender === item.id
-                      ? 'bg-ayo-bevel/80 border-amber-500 text-amber-100 shadow-md scale-[1.02]'
+                      ? 'bg-amber-900/80 border-amber-500 text-amber-100'
                       : 'bg-black/40 border-amber-950/60 text-stone-400 hover:text-amber-200 hover:border-amber-900/60'
                   }`}
                 >
@@ -197,7 +190,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 onClick={() => setSelectedMode('ai')}
                 className={`p-3 rounded-xl border flex flex-col items-center text-center transition-all cursor-pointer ${
                   selectedMode === 'ai'
-                    ? 'bg-ayo-bevel/70 border-amber-500 text-amber-100 shadow-md ring-1 ring-amber-500/30'
+                    ? 'bg-amber-900/70 border-amber-500 text-amber-100'
                     : 'bg-black/40 border-amber-950/60 text-stone-400 hover:text-amber-200'
                 }`}
               >
@@ -212,7 +205,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 onClick={() => setSelectedMode('local')}
                 className={`p-3 rounded-xl border flex flex-col items-center text-center transition-all cursor-pointer ${
                   selectedMode === 'local'
-                    ? 'bg-ayo-bevel/70 border-amber-500 text-amber-100 shadow-md ring-1 ring-amber-500/30'
+                    ? 'bg-amber-900/70 border-amber-500 text-amber-100'
                     : 'bg-black/40 border-amber-950/60 text-stone-400 hover:text-amber-200'
                 }`}
               >
@@ -227,7 +220,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 onClick={() => setSelectedMode('multiplayer')}
                 className={`p-3 rounded-xl border flex flex-col items-center text-center transition-all cursor-pointer ${
                   selectedMode === 'multiplayer'
-                    ? 'bg-ayo-bevel/70 border-amber-500 text-amber-100 shadow-md ring-1 ring-amber-500/30'
+                    ? 'bg-amber-900/70 border-amber-500 text-amber-100'
                     : 'bg-black/40 border-amber-950/60 text-stone-400 hover:text-amber-200'
                 }`}
               >
@@ -242,7 +235,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
             <button
               type="submit"
-              className="w-full sm:flex-1 py-3.5 px-6 rounded-xl font-brand font-bold text-sm sm:text-base bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-500 text-stone-950 transition-all duration-200 shadow-lg flex items-center justify-center gap-2 group cursor-pointer"
+              className="w-full sm:flex-1 py-3.5 px-6 rounded-xl font-brand font-bold text-sm sm:text-base bg-amber-600 hover:bg-amber-500 text-stone-950 transition-all duration-200 flex items-center justify-center gap-2 group cursor-pointer"
             >
               {challengerName ? (
                 <>
@@ -260,7 +253,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             <button
               type="button"
               onClick={onOpenRules}
-              className="w-full sm:w-auto py-3 px-5 rounded-xl bg-black/40 border border-amber-900/60 text-amber-200 hover:text-amber-100 text-xs font-bold hover:bg-amber-950/40 transition-colors shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full sm:w-auto py-3 px-5 rounded-xl bg-black/40 border border-amber-900/60 text-amber-200 hover:text-amber-100 text-xs font-bold hover:bg-amber-950/40 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <BookOpen className="w-3.5 h-3.5 text-amber-400" />
               <span>How to Play</span>

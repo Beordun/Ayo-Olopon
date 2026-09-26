@@ -93,7 +93,7 @@
   /* Canonical Game Specific Color Roles */
   --ayo-color-chassis-base: #23120B;
   --ayo-color-chassis-highlight: #351A0E;
-  --ayo-color-chassis-gradient: linear-gradient(145deg, #351A0E, #23120B);
+  --ayo-color-chassis-gradient: #23120B;
   --ayo-color-bevel-rim: #5C3119;
   --ayo-color-bevel-highlight: #7A4222;
   --ayo-color-hollow-cavity: #140A05;

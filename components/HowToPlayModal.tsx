@@ -14,11 +14,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
       <div
-        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl p-6 sm:p-8 border-2 border-ayo-bevel/80 relative text-stone-200"
-        style={{
-          background: 'linear-gradient(145deg, #1D110B 0%, #140905 100%)',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.9), inset 0 1px 2px rgba(255,255,255,0.08)',
-        }}
+        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl p-6 sm:p-8 border-2 border-amber-900/70 relative text-stone-200 bg-[#1C0F08]"
       >
         {/* Close Button */}
         <button
@@ -121,7 +117,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
         <div className="mt-7 pt-4 border-t border-amber-950/60 flex justify-end">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 rounded-xl font-brand font-bold text-sm bg-ayo-secondary hover:bg-amber-500 text-stone-950 transition-colors shadow-lg cursor-pointer flex items-center gap-2"
+            className="px-6 py-2.5 rounded-xl font-brand font-bold text-sm bg-amber-600 hover:bg-amber-500 text-stone-950 transition-colors cursor-pointer flex items-center gap-2"
           >
             <Check className="w-4 h-4" />
             <span>I Understand</span>

@@ -15,26 +15,16 @@ export const AiDialogueBox: React.FC<AiDialogueBoxProps> = ({
 }) => {
   return (
     <div
-      className="w-full max-w-2xl mx-auto rounded-2xl p-4 sm:p-5 border border-amber-900/40 relative overflow-hidden transition-all duration-300"
-      style={{
-        background: 'linear-gradient(145deg, #1D110B 0%, #140905 100%)',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.7), inset 0 1px 2px rgba(255,255,255,0.05)',
-      }}
+      className="w-full max-w-2xl mx-auto rounded-2xl p-4 sm:p-5 border border-amber-900/60 relative overflow-hidden transition-all duration-300 bg-[#1C0F08]"
     >
-      {/* Ambient Timber Glow */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
-
       <div className="flex items-start gap-3 sm:gap-4 relative z-10">
         {/* Avatar / Icon */}
         <div
           className={`w-11 h-11 rounded-xl flex items-center justify-center border border-amber-800/50 flex-shrink-0 transition-transform ${
-            isAiThinking ? 'animate-pulse scale-105' : ''
+            isAiThinking ? 'scale-105 border-amber-400' : ''
           }`}
           style={{
             backgroundColor: '#261710',
-            boxShadow: isAiThinking
-              ? '0 0 14px rgba(232,157,115,0.6)'
-              : '0 2px 6px rgba(0,0,0,0.6)',
           }}
         >
           <Bot className="w-6 h-6 text-amber-300" />

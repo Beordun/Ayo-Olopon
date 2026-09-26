@@ -94,12 +94,14 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
     const isHighlighted = highlightedPits.includes(pitIndex);
     const isTurnTerritory =
       gameState.currentTurn === 'south' ? !isNorth : isNorth;
+    // 1-based hole numbering in counter-clockwise game flow (1 to 6 per side)
+    const holeNumber = isNorth ? pitIndex - 5 : pitIndex + 1;
 
     return (
       <div key={pitIndex} className="flex flex-col items-center gap-1.5 select-none">
         {/* Territory & Index Indicator */}
         <span className="text-[10px] sm:text-[11px] font-brand tracking-wider uppercase font-semibold text-stone-400/70 truncate max-w-[68px] sm:max-w-[76px] text-center">
-          {isNorth ? `${displayNorthName} ${pitIndex}` : `${displaySouthName} ${pitIndex}`}
+          {isNorth ? `${displayNorthName} ${holeNumber}` : `${displaySouthName} ${holeNumber}`}
         </span>
 
         {/* The Carved Circular Hollow (Ihò) */}
@@ -109,19 +111,12 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
           data-pit-count={seedCount}
           onClick={() => handlePitInteraction(pitIndex)}
           disabled={disabled || !isLegal || isAiThinking || isSowing}
-          aria-label={`Pit ${pitIndex}, ${seedCount} seeds`}
-          className={`relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all duration-300 ${
+          aria-label={`${isNorth ? displayNorthName : displaySouthName} Hole ${holeNumber}, ${seedCount} seeds`}
+          className={`relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all duration-200 border-2 ${
             isLegal && !disabled && !isAiThinking && !isSowing
-              ? 'cursor-pointer hover:scale-105 active:scale-95 ring-2 ring-amber-500/40 shadow-activeGlow'
-              : 'cursor-default opacity-95'
-          } ${isAnimating ? 'scale-110' : ''}`}
-          style={{
-            backgroundColor: '#140A05',
-            boxShadow:
-              isLegal && !disabled && !isAiThinking && !isSowing
-                ? 'inset 0 8px 16px rgba(0,0,0,0.95), 0 0 16px rgba(232, 157, 115, 0.55)'
-                : 'inset 0 8px 16px rgba(0,0,0,0.95), inset 0 -2px 4px rgba(92,49,25,0.35)',
-          }}
+              ? 'cursor-pointer hover:scale-105 active:scale-95 border-amber-500 bg-[#140A05]'
+              : 'cursor-default opacity-95 border-amber-950/60 bg-[#120904]'
+          } ${isAnimating ? 'scale-105 border-amber-400' : ''}`}
         >
           {/* Subtle wood grain texture ring */}
           <div className="absolute inset-1 rounded-full border border-amber-950/20 pointer-events-none" />
@@ -137,12 +132,7 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
     <div className="w-full flex flex-col items-center">
       {/* Hand-Carved Hardwood Chassis (Ọpọ́n) */}
       <div
-        className="relative p-4 sm:p-6 md:p-8 rounded-[32px] sm:rounded-[40px] max-w-5xl w-full mx-auto border-4 border-ayo-bevel/80"
-        style={{
-          background: 'linear-gradient(145deg, #351A0E 0%, #23120B 60%, #170904 100%)',
-          boxShadow:
-            '0 20px 50px rgba(0,0,0,0.9), inset 0 3px 6px #7A4222, inset 0 -4px 8px #140905',
-        }}
+        className="relative p-4 sm:p-6 md:p-8 rounded-[32px] sm:rounded-[40px] max-w-5xl w-full mx-auto border-4 border-amber-900/60 bg-[#23120B]"
       >
         {/* Subtle Decorative Hardwood Carving Border Lines */}
         <div className="absolute inset-2 sm:inset-3 rounded-[26px] sm:rounded-[34px] border border-amber-800/20 pointer-events-none" />
@@ -156,15 +146,11 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
               Storehouse ({displayNorthName})
             </span>
             <div
-              className="relative w-28 h-20 sm:w-32 sm:h-24 lg:w-24 lg:h-52 rounded-[28px] flex flex-col items-center justify-center p-3 border border-amber-900/40"
-              style={{
-                backgroundColor: '#140A05',
-                boxShadow: 'inset 0 12px 24px rgba(0,0,0,0.95), inset 0 -3px 6px rgba(92,49,25,0.4)',
-              }}
+              className="relative w-28 h-20 sm:w-32 sm:h-24 lg:w-24 lg:h-52 rounded-[28px] flex flex-col items-center justify-center p-3 border-2 border-amber-950/80 bg-[#140A05]"
             >
               <div className="flex flex-wrap gap-1 justify-center items-center opacity-80 mb-1">
                 {Array.from({ length: Math.min(gameState.scores.north, 6) }).map((_, i) => (
-                  <div key={i} className="w-2.5 h-2.5 rounded-full bg-ayo-seed shadow-sm" />
+                  <div key={i} className="w-2.5 h-2.5 rounded-full bg-ayo-seed" />
                 ))}
               </div>
               <div className="text-2xl sm:text-3xl font-extrabold font-brand text-amber-100 tracking-tight">
@@ -185,8 +171,8 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
 
             {/* Subtle Divider Spine */}
             <div className="relative w-full flex items-center justify-center my-[-8px]">
-              <div className="h-[2px] w-5/6 bg-gradient-to-r from-transparent via-amber-900/30 to-transparent" />
-              <div className="absolute px-3 py-0.5 rounded-full bg-ayo-chassis border border-amber-950/40 text-[9px] uppercase tracking-widest text-amber-400/50 font-brand">
+              <div className="h-[2px] w-5/6 bg-amber-900/40" />
+              <div className="absolute px-3 py-0.5 rounded-full bg-ayo-chassis border border-amber-950/60 text-[9px] uppercase tracking-widest text-amber-400/70 font-brand">
                 Ayò Ọlọ́pọ́n
               </div>
             </div>
@@ -203,15 +189,11 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
               Storehouse ({southPlayerName})
             </span>
             <div
-              className="relative w-28 h-20 sm:w-32 sm:h-24 lg:w-24 lg:h-52 rounded-[28px] flex flex-col items-center justify-center p-3 border border-amber-900/40"
-              style={{
-                backgroundColor: '#140A05',
-                boxShadow: 'inset 0 12px 24px rgba(0,0,0,0.95), inset 0 -3px 6px rgba(92,49,25,0.4)',
-              }}
+              className="relative w-28 h-20 sm:w-32 sm:h-24 lg:w-24 lg:h-52 rounded-[28px] flex flex-col items-center justify-center p-3 border-2 border-amber-950/80 bg-[#140A05]"
             >
               <div className="flex flex-wrap gap-1 justify-center items-center opacity-80 mb-1">
                 {Array.from({ length: Math.min(gameState.scores.south, 6) }).map((_, i) => (
-                  <div key={i} className="w-2.5 h-2.5 rounded-full bg-ayo-seed shadow-sm" />
+                  <div key={i} className="w-2.5 h-2.5 rounded-full bg-ayo-seed" />
                 ))}
               </div>
               <div className="text-2xl sm:text-3xl font-extrabold font-brand text-amber-100 tracking-tight">

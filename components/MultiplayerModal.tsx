@@ -102,11 +102,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
       <div
-        className="w-full max-w-md rounded-3xl p-6 sm:p-7 border-2 border-ayo-bevel/80 relative overflow-hidden text-stone-200"
-        style={{
-          background: 'linear-gradient(145deg, #1D110B 0%, #140905 100%)',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.9), inset 0 1px 2px rgba(255,255,255,0.08)',
-        }}
+        className="w-full max-w-md rounded-3xl p-6 sm:p-7 border-2 border-amber-900/70 relative overflow-hidden text-stone-200 bg-[#1C0F08]"
       >
         {/* Close Button */}
         <button
@@ -118,7 +114,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
 
         {/* Modal Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-ayo-surfaceContainerHigh flex items-center justify-center border border-amber-900/50">
+          <div className="w-10 h-10 rounded-xl bg-[#23120B] flex items-center justify-center border border-amber-900/50">
             <Users className="w-5 h-5 text-amber-300" />
           </div>
           <div>
@@ -159,7 +155,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
               </div>
               <button
                 onClick={handleCopyLink}
-                className="px-4 py-2.5 rounded-xl font-brand font-semibold text-xs bg-ayo-bevel hover:bg-ayo-bevelHighlight text-amber-100 transition-colors flex items-center gap-1.5 shadow-md cursor-pointer"
+                className="px-4 py-2.5 rounded-xl font-brand font-semibold text-xs bg-amber-800/80 hover:bg-amber-700 text-amber-100 transition-colors flex items-center gap-1.5 cursor-pointer border border-amber-600/40"
                 title="Copy Invitation Link"
               >
                 {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
@@ -170,7 +166,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
             {/* Share Challenge Message Button */}
             <button
               onClick={handleCopyChallengeMessage}
-              className="w-full mt-2 py-2.5 px-4 rounded-xl bg-amber-950/40 border border-amber-800/40 text-amber-200 hover:text-amber-100 hover:bg-amber-900/50 transition-colors text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              className="w-full mt-2 py-2.5 px-4 rounded-xl bg-amber-950/40 border border-amber-800/40 text-amber-200 hover:text-amber-100 hover:bg-amber-900/50 transition-colors text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
             >
               <Share2 className="w-4 h-4 text-amber-400" />
               <span>
@@ -206,7 +202,7 @@ export const MultiplayerModal: React.FC<MultiplayerModalProps> = ({
                 if (inputRoomId.trim()) onJoinRoom(inputRoomId.trim());
               }}
               disabled={!inputRoomId.trim()}
-              className="px-5 py-2.5 rounded-xl font-brand font-bold text-sm bg-ayo-secondary hover:bg-amber-500 text-stone-950 transition-colors disabled:opacity-40 shadow-md cursor-pointer"
+              className="px-5 py-2.5 rounded-xl font-brand font-bold text-sm bg-amber-600 hover:bg-amber-500 text-stone-950 transition-colors disabled:opacity-40 cursor-pointer"
             >
               Join
             </button>
