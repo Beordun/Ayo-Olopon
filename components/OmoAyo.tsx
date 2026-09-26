@@ -8,17 +8,17 @@ interface OmoAyoProps {
 }
 
 /**
- * Organic Pebble SVG Component with authentic radial gradient & tactile drop-shadow
+ * Organic Pebble SVG Component with authentic Caesalpinia bonduc seed styling matching Welcome Screen
  */
 const Pebble = ({ rotation, scale, offsetX, offsetY }: { rotation: number; scale: number; offsetX: number; offsetY: number }) => (
   <div
     className="absolute transition-transform duration-200"
     style={{
       transform: `translate(${offsetX}px, ${offsetY}px) rotate(${rotation}deg) scale(${scale})`,
-      filter: 'drop-shadow(0 3px 5px rgba(0, 0, 0, 0.85)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9))',
+      filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.9)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.95))',
     }}
   >
-    <svg width="22" height="20" viewBox="0 0 22 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="24" height="22" viewBox="0 0 22 20" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <radialGradient id="omoAyoGrad" cx="35%" cy="35%" r="65%">
           <stop offset="0%" stopColor="#73836C" />
@@ -33,8 +33,8 @@ const Pebble = ({ rotation, scale, offsetX, offsetY }: { rotation: number; scale
         stroke="#2A3326"
         strokeWidth="0.8"
       />
-      {/* Subtle organic light sheen on top surface */}
-      <ellipse cx="8.5" cy="6.5" rx="3.5" ry="2" fill="#889980" opacity="0.35" transform="rotate(-15 8.5 6.5)" />
+      {/* Subtle organic light sheen on top surface matching welcome screen */}
+      <ellipse cx="8.5" cy="6.5" rx="3.5" ry="2" fill="#889980" opacity="0.4" transform="rotate(-15 8.5 6.5)" />
     </svg>
   </div>
 );
@@ -45,18 +45,18 @@ const Pebble = ({ rotation, scale, offsetX, offsetY }: { rotation: number; scale
 const TriadCluster = ({ count }: { count: number }) => (
   <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
     {/* 3 overlapping stylized pebbles */}
-    <div className="relative w-10 h-10 flex items-center justify-center">
-      <div className="absolute -top-1 left-2 rotate-[-12deg] scale-90 opacity-95">
-        <Pebble rotation={-12} scale={0.9} offsetX={0} offsetY={0} />
+    <div className="relative w-11 h-11 flex items-center justify-center">
+      <div className="absolute -top-1 left-2 rotate-[-12deg] scale-95 opacity-95">
+        <Pebble rotation={-12} scale={0.95} offsetX={0} offsetY={0} />
       </div>
-      <div className="absolute top-2 -left-1 rotate-[24deg] scale-95 opacity-95">
-        <Pebble rotation={24} scale={0.95} offsetX={0} offsetY={0} />
+      <div className="absolute top-2 -left-1 rotate-[24deg] scale-100 opacity-95">
+        <Pebble rotation={24} scale={1.0} offsetX={0} offsetY={0} />
       </div>
-      <div className="absolute top-2 right-0 rotate-[60deg] scale-90 opacity-95">
-        <Pebble rotation={60} scale={0.9} offsetX={0} offsetY={0} />
+      <div className="absolute top-2 right-0 rotate-[60deg] scale-95 opacity-95">
+        <Pebble rotation={60} scale={0.95} offsetX={0} offsetY={0} />
       </div>
 
-      {/* Centered High-Contrast Numeric Pill Badge with subtle depth shadow */}
+      {/* Centered High-Contrast Numeric Pill Badge with depth shadow */}
       <div
         className="relative z-10 px-2 py-0.5 rounded-full text-xs font-bold font-brand tracking-wide border border-amber-800/80 bg-[#1F1008] text-[#EAD8C7]"
         style={{
@@ -74,24 +74,24 @@ export const OmoAyo: React.FC<OmoAyoProps> = ({ count, isAnimating }) => {
   const pebbleLayouts = useMemo(() => {
     switch (count) {
       case 1:
-        return [{ rotation: 5, scale: 1.05, offsetX: 0, offsetY: 0 }];
+        return [{ rotation: 5, scale: 1.18, offsetX: 0, offsetY: 0 }];
       case 2:
         return [
-          { rotation: -12, scale: 1.0, offsetX: -6, offsetY: -2 },
-          { rotation: 18, scale: 0.98, offsetX: 6, offsetY: 2 },
+          { rotation: -12, scale: 1.1, offsetX: -7, offsetY: -3 },
+          { rotation: 18, scale: 1.08, offsetX: 7, offsetY: 3 },
         ];
       case 3:
         return [
-          { rotation: -8, scale: 0.95, offsetX: 0, offsetY: -7 },
-          { rotation: 22, scale: 0.95, offsetX: -6, offsetY: 4 },
-          { rotation: -18, scale: 0.96, offsetX: 6, offsetY: 4 },
+          { rotation: -8, scale: 1.05, offsetX: 0, offsetY: -8 },
+          { rotation: 22, scale: 1.05, offsetX: -7, offsetY: 5 },
+          { rotation: -18, scale: 1.06, offsetX: 7, offsetY: 5 },
         ];
       case 4:
         return [
-          { rotation: -15, scale: 0.92, offsetX: -6, offsetY: -6 },
-          { rotation: 14, scale: 0.94, offsetX: 6, offsetY: -5 },
-          { rotation: 20, scale: 0.92, offsetX: -5, offsetY: 6 },
-          { rotation: -10, scale: 0.93, offsetX: 6, offsetY: 6 },
+          { rotation: -15, scale: 1.03, offsetX: -7, offsetY: -7 },
+          { rotation: 14, scale: 1.05, offsetX: 7, offsetY: -6 },
+          { rotation: 20, scale: 1.03, offsetX: -6, offsetY: 7 },
+          { rotation: -10, scale: 1.04, offsetX: 7, offsetY: 7 },
         ];
       default:
         return [];

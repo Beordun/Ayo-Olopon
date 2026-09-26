@@ -44,6 +44,7 @@ export class MultiplayerSession {
   private activePollAbortController: AbortController | null = null;
   private lastPollMessageId: number = 0;
   private processedMessageKeys = new Set<string>();
+  private challengeAcceptedTriggered = false;
 
   constructor(
     role: PlayerSide,
@@ -174,11 +175,14 @@ export class MultiplayerSession {
       this.lastPollMessageId = data.latestMessageId;
     }
 
-    // Role-specific opponent discovery
+    // Role-specific opponent discovery (only fire challenge accepted once)
     if (this.role === 'south' && data.clientName && !this.opponentName) {
       this.opponentName = data.clientName;
       this.callbacks.onOpponentName?.(data.clientName);
-      this.callbacks.onChallengeAccepted?.(data.clientName);
+      if (!this.challengeAcceptedTriggered) {
+        this.challengeAcceptedTriggered = true;
+        this.callbacks.onChallengeAccepted?.(data.clientName);
+      }
       this.setStatus('connected');
       this.broadcastCurrentState();
     }
@@ -323,7 +327,10 @@ export class MultiplayerSession {
             this.opponentName = msg.playerName;
             this.callbacks.onOpponentName?.(msg.playerName);
           }
-          this.callbacks.onChallengeAccepted?.(msg.playerName);
+          if (!this.challengeAcceptedTriggered) {
+            this.challengeAcceptedTriggered = true;
+            this.callbacks.onChallengeAccepted?.(msg.playerName);
+          }
           this.broadcastCurrentState();
         }
         break;
@@ -375,6 +382,7 @@ export class MultiplayerSession {
 
   public resetHostState(state?: GameState) {
     this.authoritativeState = state ? JSON.parse(JSON.stringify(state)) : createInitialState();
+    this.challengeAcceptedTriggered = true;
     this.moveSequence++;
     if (this.role === 'south') {
       this.broadcastCurrentState();

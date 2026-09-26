@@ -51,6 +51,7 @@ export default function AyoPage() {
   const [matchNotification, setMatchNotification] = useState<string | null>(null);
   const multiplayerSessionRef = useRef<MultiplayerSession | null>(null);
   const gameStateRef = useRef<GameState>(gameState);
+  const hasChallengeStartedRef = useRef(false);
 
   useEffect(() => {
     gameStateRef.current = gameState;
@@ -152,6 +153,7 @@ export default function AyoPage() {
 
   // Reset Game to Canonical Initial State
   const resetGame = () => {
+    hasChallengeStartedRef.current = false;
     setGameState(createInitialState());
     setLastAiResponse(null);
     setIsAiThinking(false);
@@ -159,8 +161,19 @@ export default function AyoPage() {
 
   // Exit Game back to Welcome Landing Page
   const exitToLanding = () => {
+    hasChallengeStartedRef.current = false;
     resetGame();
     setHasEnteredGame(false);
+  };
+
+  // Exit Game Guard: Alert the user if an active game is in progress
+  const handleExitGame = () => {
+    if (!gameState.isGameOver) {
+      alert('A game is in progress.');
+      const confirmExit = window.confirm('Are you sure you want to exit?');
+      if (!confirmExit) return;
+    }
+    exitToLanding();
   };
 
   // AI Turn Handler (Ọ̀tá Ayò)
@@ -272,6 +285,12 @@ export default function AyoPage() {
           resetGame();
         },
         onChallengeAccepted: (acceptedOpponentName) => {
+          if (hasChallengeStartedRef.current) {
+            // Once challenge is accepted and game has started, do not repeat!
+            return;
+          }
+          hasChallengeStartedRef.current = true;
+
           // DIRECT HOST TO ONLINE PEER TAB TO START THE GAME
           setGameMode('multiplayer');
           setHasEnteredGame(true);
@@ -326,6 +345,16 @@ export default function AyoPage() {
             setHasEnteredGame(true);
             resetGame();
 
+            // Clear challenge invitation URL parameters to avoid repeating on reload
+            if (typeof window !== 'undefined' && (challengeRoom || challengerName)) {
+              try {
+                const url = new URL(window.location.href);
+                url.searchParams.delete('room');
+                url.searchParams.delete('challenger');
+                window.history.replaceState({}, document.title, url.pathname);
+              } catch {}
+            }
+
             if (mode === 'multiplayer') {
               if (challengeRoom) {
                 // Joining existing challenge room from invitation link
@@ -355,8 +384,34 @@ export default function AyoPage() {
       <header className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 py-2 border-b border-amber-950/40 mb-4 sm:mb-6">
         {/* Cultural Brand Title & Player Profile Badge */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-ayo-chassis border-2 border-amber-900/60 flex items-center justify-center">
-            <Disc className="w-5 h-5 text-amber-400" />
+          {/* Emblem: Authentic Ọmọ Ayò seed matching Welcome Screen */}
+          <div className="w-10 h-10 rounded-2xl bg-black/40 border-2 border-amber-900/60 flex items-center justify-center relative overflow-hidden">
+            <svg
+              width="26"
+              height="24"
+              viewBox="0 0 22 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{
+                filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9))',
+              }}
+              aria-label="Ọmọ Ayò"
+            >
+              <defs>
+                <radialGradient id="boardHeaderSeedGrad" cx="35%" cy="35%" r="65%">
+                  <stop offset="0%" stopColor="#73836C" />
+                  <stop offset="50%" stopColor="#53624D" />
+                  <stop offset="100%" stopColor="#2A3326" />
+                </radialGradient>
+              </defs>
+              <path
+                d="M10.8 1.2C15.5 1.5 19.8 4.2 20.6 8.5C21.4 12.8 18.2 17.1 13.5 18.3C8.8 19.5 3.5 17.2 1.8 12.8C0.1 8.5 3.2 2.8 7.8 1.6C8.8 1.3 9.8 1.1 10.8 1.2Z"
+                fill="url(#boardHeaderSeedGrad)"
+                stroke="#2A3326"
+                strokeWidth="0.8"
+              />
+              <ellipse cx="8.5" cy="6.5" rx="3.5" ry="2" fill="#889980" opacity="0.4" transform="rotate(-15 8.5 6.5)" />
+            </svg>
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-amber-100 uppercase">
@@ -452,9 +507,9 @@ export default function AyoPage() {
             <span>Rules</span>
           </button>
 
-          {/* Exit to Landing Page Button */}
+          {/* Exit to Landing Page Button with Ongoing Game Alert Guard */}
           <button
-            onClick={exitToLanding}
+            onClick={handleExitGame}
             title="Exit to Welcome Page"
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-black/40 border border-amber-950/60 text-stone-400 hover:text-red-300 hover:border-red-900/40 transition-all text-xs font-bold cursor-pointer"
           >

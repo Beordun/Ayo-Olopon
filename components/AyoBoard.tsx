@@ -16,6 +16,38 @@ interface AyoBoardProps {
   northPlayerName?: string;
 }
 
+/**
+ * Miniature Ọmọ Ayò seed SVG matching Welcome Screen aesthetics for Storehouses
+ */
+const StorehouseSeedIcon: React.FC = () => (
+  <svg
+    width="13"
+    height="12"
+    viewBox="0 0 22 20"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    style={{
+      filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9))',
+    }}
+    aria-hidden="true"
+  >
+    <defs>
+      <radialGradient id="storehouseSeedGrad" cx="35%" cy="35%" r="65%">
+        <stop offset="0%" stopColor="#73836C" />
+        <stop offset="50%" stopColor="#53624D" />
+        <stop offset="100%" stopColor="#2A3326" />
+      </radialGradient>
+    </defs>
+    <path
+      d="M10.8 1.2C15.5 1.5 19.8 4.2 20.6 8.5C21.4 12.8 18.2 17.1 13.5 18.3C8.8 19.5 3.5 17.2 1.8 12.8C0.1 8.5 3.2 2.8 7.8 1.6C8.8 1.3 9.8 1.1 10.8 1.2Z"
+      fill="url(#storehouseSeedGrad)"
+      stroke="#2A3326"
+      strokeWidth="0.8"
+    />
+    <ellipse cx="8.5" cy="6.5" rx="3.5" ry="2" fill="#889980" opacity="0.4" transform="rotate(-15 8.5 6.5)" />
+  </svg>
+);
+
 export const AyoBoard: React.FC<AyoBoardProps> = ({
   gameState,
   onPitClick,
@@ -160,9 +192,9 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
             <div
               className="relative w-28 h-20 sm:w-32 sm:h-24 lg:w-24 lg:h-52 rounded-[28px] flex flex-col items-center justify-center p-3 border-2 border-amber-950/80 bg-[#140A05]"
             >
-              <div className="flex flex-wrap gap-1 justify-center items-center opacity-80 mb-1">
+              <div className="flex flex-wrap gap-1 justify-center items-center opacity-90 mb-1">
                 {Array.from({ length: Math.min(gameState.scores.north, 6) }).map((_, i) => (
-                  <div key={i} className="w-2.5 h-2.5 rounded-full bg-ayo-seed" />
+                  <StorehouseSeedIcon key={i} />
                 ))}
               </div>
               <div className="text-2xl sm:text-3xl font-extrabold font-brand text-amber-100 tracking-tight">
@@ -203,9 +235,9 @@ export const AyoBoard: React.FC<AyoBoardProps> = ({
             <div
               className="relative w-28 h-20 sm:w-32 sm:h-24 lg:w-24 lg:h-52 rounded-[28px] flex flex-col items-center justify-center p-3 border-2 border-amber-950/80 bg-[#140A05]"
             >
-              <div className="flex flex-wrap gap-1 justify-center items-center opacity-80 mb-1">
+              <div className="flex flex-wrap gap-1 justify-center items-center opacity-90 mb-1">
                 {Array.from({ length: Math.min(gameState.scores.south, 6) }).map((_, i) => (
-                  <div key={i} className="w-2.5 h-2.5 rounded-full bg-ayo-seed" />
+                  <StorehouseSeedIcon key={i} />
                 ))}
               </div>
               <div className="text-2xl sm:text-3xl font-extrabold font-brand text-amber-100 tracking-tight">
