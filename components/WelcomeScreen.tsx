@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { UserProfile } from '@/types/ayo';
-import { Bot, Gamepad2, Users, Play, User, BookOpen, Swords, Disc } from 'lucide-react';
+import { Bot, Gamepad2, Users, Play, User, BookOpen, Swords } from 'lucide-react';
 import { sound } from '@/lib/audio';
 
 interface WelcomeScreenProps {
@@ -88,10 +88,38 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         {/* Subtle decorative inner border */}
         <div className="absolute inset-2 sm:inset-3 rounded-[26px] sm:rounded-[34px] border border-amber-800/20 pointer-events-none" />
 
-        {/* Brand Header with Lucide Disc Icon */}
+        {/* Brand Header with Authentic Ọmọ Ayò Playing Seed in Carved Hollow */}
         <div className="text-center relative z-10 mb-6 sm:mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-ayo-chassis border-2 border-amber-900/70 mb-3">
-            <Disc className="w-8 h-8 text-amber-400" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#140A05] border-2 border-amber-900/70 mb-3">
+            <svg
+              width="36"
+              height="33"
+              viewBox="0 0 22 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="transition-transform duration-300 hover:scale-110"
+              style={{
+                filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.9)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.95))',
+              }}
+              aria-label="Ọmọ Ayò (Authentic Caesalpinia bonduc playing seed)"
+            >
+              <defs>
+                <radialGradient id="welcomeSeedGrad" cx="35%" cy="35%" r="65%">
+                  <stop offset="0%" stopColor="#73836C" />
+                  <stop offset="50%" stopColor="#53624D" />
+                  <stop offset="100%" stopColor="#2A3326" />
+                </radialGradient>
+              </defs>
+              {/* Organic asymmetrical pebble shape with authentic Caesalpinia bonduc seed gradient */}
+              <path
+                d="M10.8 1.2C15.5 1.5 19.8 4.2 20.6 8.5C21.4 12.8 18.2 17.1 13.5 18.3C8.8 19.5 3.5 17.2 1.8 12.8C0.1 8.5 3.2 2.8 7.8 1.6C8.8 1.3 9.8 1.1 10.8 1.2Z"
+                fill="url(#welcomeSeedGrad)"
+                stroke="#2A3326"
+                strokeWidth="0.8"
+              />
+              {/* Subtle organic light sheen on top surface */}
+              <ellipse cx="8.5" cy="6.5" rx="3.5" ry="2" fill="#889980" opacity="0.4" transform="rotate(-15 8.5 6.5)" />
+            </svg>
           </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-amber-100 uppercase font-brand">
